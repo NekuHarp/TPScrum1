@@ -73,12 +73,12 @@ def parser(Fname):
     f = open(Out, "w+")
 
     if(XML):
-        f.write("<{}>".format(_ARTICLE))
-        f.write("<{0}>{1}</{0}>".format(_PREAMBULE, Fname.split('/')[-1]))
-        f.write("<{0}>{1}</{0}>".format(_TITRE, title))
-        f.write("<{0}>{1}</{0}>".format(_AUTEUR, "AUTEUR"))
-        f.write("<{0}>{1}</{0}>".format(_ABSTRACT, abst))
-        f.write("<{0}>{1}</{0}>".format(_BIBLIO, "BIBLIO"))
+        f.write("<{}>\n".format(_ARTICLE))
+        f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1]))
+        f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, title))
+        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, "AUTEUR"))
+        f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, abst))
+        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, "BIBLIO"))
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
