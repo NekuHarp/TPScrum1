@@ -48,7 +48,7 @@ def parser(Fname):
         if inT:
             title += line[:-1]
             title += " "
-        if re.search(regex, line):
+        if re.search(regex, line, re.IGNORECASE):
             inW = True
         if line == eol:
             inW = False
