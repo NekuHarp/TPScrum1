@@ -23,6 +23,8 @@ _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
 
+REMOV_TITLE = ['in', 'and']
+
 _MAX_LEN = 80
 
 XML = False
@@ -31,31 +33,57 @@ Text = False
 def parser(Fname):
     inW = False
     inT = True
+    inR = False
 
     regex = "Abstract.*\n"
+    rregex = "References\n"
+    uregex = "www.*.*"
     eol = "\n"
+    eolc = 0
 
     title = ""
     watchd = 0
+    Wflag = 0
 
     ficher = open(Fname, "r")
     abst = ""
+    auth = ""
+    refs = ""
     for line in ficher:
         if watchd>1 and title=="":
             inT = True
-        if not False in [i[0].isupper() for i in line.split(" ")]:
+        if re.search(uregex, line, re.IGNORECASE) and Wflag == 0:
+            inT = False
+            title = ""
+            watchd = 0
+        if re.search(rregex, line, re.IGNORECASE):
+            inR = True
+        if not False in [(i[0].isupper() or i in REMOV_TITLE) for i in line.split(" ")]:
             inT = False
         if inT:
             title += line[:-1]
             title += " "
+        if inR:
+            if eolc >= 2:
+                inR = False
+            refs += line[:-1]
+            refs = " "
         if re.search(regex, line, re.IGNORECASE):
+            line = line[len(regex)-2:]
             inW = True
+            Wflag = 1
         if line == eol:
             inW = False
             intT = False
+            eolc += 1
+        else:
+            eolc = 0
         if inW:
             abst += line[:-1]
             abst += ' '
+        if not inW and not inT and Wflag == 0:
+            auth += line[:-1]
+            auth += ' '
         watchd+=1
     """
         <article>
@@ -74,11 +102,11 @@ def parser(Fname):
 
     if(XML):
         f.write("<{}>\n".format(_ARTICLE))
-        f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1]))
+        f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1][:-len(_EOUT)-1]))
         f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, title))
-        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, "AUTEUR"))
+        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, auth))
         f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, abst))
-        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, "BIBLIO"))
+        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, refs))
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
