@@ -56,27 +56,27 @@ def parser(Fname):
             inT = False
             title = ""
             watchd = 0
-        if re.search(rregex, line, re.IGNORECASE):
-            inR = True
         if not False in [(i[0].isupper() or i in REMOV_TITLE) for i in line.split(" ")]:
             inT = False
         if inT:
             title += line[:-1]
             title += " "
-        if inR:
-            if eolc >= 2:
-                inR = False
-            refs += line[:-1]
-            refs = " "
         if re.search(regex, line, re.IGNORECASE):
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
+        if line.title() == rregex:
+            inR = True
         if line == eol:
             inW = False
             intT = False
             eolc += 1
-        else:
+        if inR:
+            if eolc >= 2:
+                inR = False
+            refs += line[:-1]
+            refs += " "
+        if line != eol:
             eolc = 0
         if inW:
             abst += line[:-1]
