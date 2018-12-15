@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import sys
 import glob
@@ -34,13 +35,18 @@ def parser(Fname):
     inW = False
     inT = True
     inR = False
+    inK = False
 
     regex = "Abstract.*\n"
     rregex = "[\u000c]*References\n"
     uregex = "www.*.*"
     vregex = "(VOL[.|UME.]*)(( \d*))*"
 
+    kireg = "^((Keywords:)|(Index Terms[—]*))"
+
     nreg = "^\d\d{0,}$"
+
+    unreg = "^\d[0-9 ]+$"
 
     eol = "\n"
     eolc = 0
@@ -53,9 +59,21 @@ def parser(Fname):
     abst = ""
     auth = ""
     refs = ""
+    kwind = ""
     for line in ficher:
         if watchd>1 and title=="":
             inT = True
+        if inK and line != eol:
+            kwind += line[:-1]
+            kwind += " "
+        else:
+            inK = False
+        if re.search(kireg, line, re.IGNORECASE) and Wflag == 1:
+            inK = True
+            inW = False
+            Wflag = 1
+            print " {} ".format(line[:-1])
+            continue
         if inT and re.search(nreg, line) and Wflag == 0:
             title = ""
             watchd = 0
@@ -69,7 +87,7 @@ def parser(Fname):
         if inT:
             title += line[:-1]
             title += " "
-        if re.search(regex, line, re.IGNORECASE):
+        if re.search(regex, line, re.IGNORECASE) and Wflag == 0:
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
@@ -89,7 +107,7 @@ def parser(Fname):
         if inW:
             abst += line[:-1]
             abst += ' '
-        if not inW and not inT and Wflag == 0:
+        if not inW and not inT and Wflag == 0 and not re.search(uregex, line, re.IGNORECASE):
             auth += line[:-1]
             auth += ' '
         watchd+=1
