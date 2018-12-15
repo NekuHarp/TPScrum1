@@ -24,7 +24,8 @@ _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
 
-REMOV_TITLE = ['in', 'and']
+REMOV_TITLE = [',', 'and']
+IGNORE_ME = ['in', 'and', 'for']
 
 _MAX_LEN = 80
 
@@ -74,9 +75,9 @@ def parser(Fname):
             Wflag = 1
             print " {} ".format(line[:-1])
             continue
-        if inT and re.search(nreg, line) and Wflag == 0:
-            title = ""
-            watchd = 0
+        #if inT and re.search(nreg, line) and Wflag == 0:
+        #    title = ""
+        #    watchd = 0
             #continue
         if re.search(uregex, line, re.IGNORECASE) and Wflag == 0:
             inT = False
