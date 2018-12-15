@@ -97,7 +97,7 @@ def parser(Fname):
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
-        if line == eol or re.search(unreg, line):
+        if line == eol or re.search(nreg, line):
             line = ""
             inW = False
             intT = False
@@ -132,6 +132,14 @@ def parser(Fname):
     Fsplt = outFname.split('/')
     Out = '{}/{}/{}'.format('/'.join(Fsplt[:-1]), outF, ''.join(Fsplt[-1:]))
     f = open(Out, "w+")
+
+    # Sanitize spaces
+    title = ' '.join(title.split())
+    abst = ' '.join(abst.split())
+    auth = ' '.join(auth.split())
+    auth = auth.replace(" , ", ", ") # Oxford comma, please.
+    auth = auth.replace(" : ", ": ").replace(" ; ", "; ")
+    refs = ' '.join(refs.split())
 
     if(XML):
         f.write("<{}>\n".format(_ARTICLE))
