@@ -63,6 +63,7 @@ def parser(Fname):
     refs = ""
     kwind = ""
     for line in ficher:
+        l = line[:-1] if len(line)>1 else line
         if watchd>1 and title=="":
             inT = True
         if inK and line != eol:
@@ -74,22 +75,25 @@ def parser(Fname):
             inK = True
             inW = False
             Wflag = 1
-            print " {} ".format(line[:-1])
+            #print " {} ".format(line[:-1])
             continue
         #if inT and re.search(nreg, line) and Wflag == 0:
         #    title = ""
         #    watchd = 0
             #continue
-        if re.search(uregex, line, re.IGNORECASE) and Wflag == 0:
+        if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")]:
+            print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
+            inT = False
+            inW = False
+        if Wflag == 0 and re.search(uregex, line, re.IGNORECASE):
             inT = False
             title = ""
             watchd = 0
-        if not False in [(i[0].isupper() or i in REMOV_TITLE) for i in line.split(" ")]:
-            inT = False
         if inT:
+            print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
             title += line[:-1]
             title += " "
-        if re.search(regex, line, re.IGNORECASE) and Wflag == 0:
+        if Wflag == 0 and re.search(regex, line, re.IGNORECASE):
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
