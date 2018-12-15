@@ -39,7 +39,8 @@ def parser(Fname):
     inK = False
 
     regex = "Abstract.*\n"
-    rregex = "[\u000c]*References\n"
+    rregex = "^References\n"
+    rfregex = "References\n"
     uregex = "www.*.*"
     vregex = "(VOL[.|UME.]*)(( \d*))*"
 
@@ -47,7 +48,7 @@ def parser(Fname):
 
     nreg = "^\d\d{0,}$"
 
-    unreg = "^\d[0-9 ]+$"
+    unreg = "[\u000c]*\d[0-9]+\n"
 
     eol = "\n"
     eolc = 0
@@ -92,7 +93,8 @@ def parser(Fname):
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
-        if line == eol or re.search(nreg, line):
+        if line == eol or re.search(unreg, line):
+            line = ""
             inW = False
             intT = False
             eolc += 1
@@ -103,7 +105,7 @@ def parser(Fname):
                 inR = False
             refs += line[:-1]
             refs += " "
-        if re.search(rregex, line, re.IGNORECASE):
+        if re.search(rregex, line, re.IGNORECASE) or (len(line)>len(rfregex) and line[1:]==rfregex):
             inR = True
         if inW:
             abst += line[:-1]
