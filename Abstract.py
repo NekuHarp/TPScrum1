@@ -36,8 +36,12 @@ def parser(Fname):
     inR = False
 
     regex = "Abstract.*\n"
-    rregex = "References\n"
+    rregex = "[\u000c]*References\n"
     uregex = "www.*.*"
+    vregex = "(VOL[.|UME.]*)(( \d*))*"
+
+    nreg = "^\d\d{0,}$"
+
     eol = "\n"
     eolc = 0
 
@@ -52,6 +56,10 @@ def parser(Fname):
     for line in ficher:
         if watchd>1 and title=="":
             inT = True
+        if inT and re.search(nreg, line) and Wflag == 0:
+            title = ""
+            watchd = 0
+            #continue
         if re.search(uregex, line, re.IGNORECASE) and Wflag == 0:
             inT = False
             title = ""
@@ -65,19 +73,19 @@ def parser(Fname):
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
-        if line.title() == rregex:
-            inR = True
-        if line == eol:
+        if line == eol or re.search(nreg, line):
             inW = False
             intT = False
             eolc += 1
+        else:
+            eolc = 0
         if inR:
             if eolc >= 2:
                 inR = False
             refs += line[:-1]
             refs += " "
-        if line != eol:
-            eolc = 0
+        if re.search(rregex, line, re.IGNORECASE):
+            inR = True
         if inW:
             abst += line[:-1]
             abst += ' '
