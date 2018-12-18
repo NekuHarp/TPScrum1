@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import re
 import sys
 import glob
@@ -30,16 +32,24 @@ Text = False
 
 def parser(Fname):
     inW = False
+    inR = False
     inT = True
 
-    regex = "Abstract.*\n"
+    wTilte = False
+
+    regex = "Abstract[.—]*\n"
+    rregex = "References\n"
+    kregex = "Keywords: *\n"
+    uregex = "(\W*|)www.*.*"
     eol = "\n"
+    eolc = 0
 
     title = ""
     watchd = 0
 
     ficher = open(Fname, "r")
     abst = ""
+    ref = ""
     for line in ficher:
         if watchd>1 and title=="":
             inT = True
@@ -48,14 +58,28 @@ def parser(Fname):
         if inT:
             title += line[:-1]
             title += " "
+        if re.search(uregex, line):
+            inT = False
         if re.search(regex, line, re.IGNORECASE):
             inW = True
+        if re.search(kregex, line, re.IGNORECASE):
+            inW = False
+        if re.search(rregex, line, re.IGNORECASE):
+            inR = True
         if line == eol:
             inW = False
             intT = False
+            eolc += 1
+        else :
+            eolc = 0
         if inW:
             abst += line[:-1]
             abst += ' '
+        if inR:
+            ref += line[:-1]
+            ref += ' '
+            if eolc >=2:
+                inR = False
         watchd+=1
     """
         <article>
@@ -78,7 +102,7 @@ def parser(Fname):
         f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, title))
         f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, "AUTEUR"))
         f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, abst))
-        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, "BIBLIO"))
+        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, ref))
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
