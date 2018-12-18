@@ -1,0 +1,13 @@
+version: "3"
+services:
+  osl:
+    container_name: scrum-python-run
+    build: .
+    tty: true
+    stdin_open: true
+    volumes:
+      - "./:/usr/src/app/"
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_PTRACE

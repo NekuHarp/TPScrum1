@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-
 import re
 import sys
 import glob
@@ -25,6 +24,9 @@ _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
 
+REMOV_TITLE = [',', 'and']
+IGNORE_ME = ['in', 'and', 'for']
+
 _MAX_LEN = 80
 
 XML = False
@@ -34,52 +36,96 @@ def parser(Fname):
     inW = False
     inR = False
     inT = True
+    inR = False
+    inK = False
+
+    regex = "Abstract.*\n"
+    rregex = "^References\n"
+    rfregex = "References\n"
+    uregex = "www.*.*"
+    vregex = "(VOL[.|UME.]*)(( \d*))*"
+
+    kireg = "^((Keywords:)|(Index Terms[—]*))"
+
+    nreg = "^\d\d{0,}$"
+
+    unreg = "[\u000c]*\d[0-9]+\n"
 
     wTilte = False
 
-    regex = "Abstract[.—]*\n"
-    rregex = "References\n"
-    kregex = "Keywords: *\n"
-    uregex = "(\W*|)www.*.*"
+    old_regex = "Abstract[.—]*\n"
+    old_rregex = "References\n"
+    old_kregex = "Keywords: *\n"
+    old_uregex = "(\W*|)www.*.*"
+
+
     eol = "\n"
     eolc = 0
 
     title = ""
     watchd = 0
+    Wflag = 0
 
     ficher = open(Fname, "r")
     abst = ""
-    ref = ""
+    auth = ""
+    refs = ""
+    kwind = ""
     for line in ficher:
+        l = line[:-1] if len(line)>1 else line
         if watchd>1 and title=="":
             inT = True
-        if not False in [i[0].isupper() for i in line.split(" ")]:
+        if inK and line != eol:
+            kwind += line[:-1]
+            kwind += " "
+        else:
+            inK = False
+        if re.search(kireg, line, re.IGNORECASE) and Wflag == 1:
+            inK = True
+            inW = False
+            Wflag = 1
+            #print " {} ".format(line[:-1])
+            continue
+        #if inT and re.search(nreg, line) and Wflag == 0:
+        #    title = ""
+        #    watchd = 0
+            #continue
+        if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")]:
+            print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
             inT = False
+            inW = False
+        if Wflag == 0 and re.search(uregex, line, re.IGNORECASE):
+            inT = False
+            title = ""
+            watchd = 0
         if inT:
+            print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
             title += line[:-1]
             title += " "
-        if re.search(uregex, line):
-            inT = False
-        if re.search(regex, line, re.IGNORECASE):
+        if Wflag == 0 and re.search(regex, line, re.IGNORECASE):
+            line = line[len(regex)-2:]
             inW = True
-        if re.search(kregex, line, re.IGNORECASE):
-            inW = False
-        if re.search(rregex, line, re.IGNORECASE):
-            inR = True
-        if line == eol:
+            Wflag = 1
+        if line == eol or re.search(nreg, line):
+            line = ""
             inW = False
             intT = False
             eolc += 1
-        else :
+        else:
             eolc = 0
+        if inR:
+            if eolc >= 2:
+                inR = False
+            refs += line[:-1]
+            refs += " "
+        if re.search(rregex, line, re.IGNORECASE) or (len(line)>len(rfregex) and line[1:]==rfregex):
+            inR = True
         if inW:
             abst += line[:-1]
             abst += ' '
-        if inR:
-            ref += line[:-1]
-            ref += ' '
-            if eolc >=2:
-                inR = False
+        if not inW and not inT and Wflag == 0 and not re.search(uregex, line, re.IGNORECASE):
+            auth += line[:-1]
+            auth += ' '
         watchd+=1
     """
         <article>
@@ -96,13 +142,21 @@ def parser(Fname):
     Out = '{}/{}/{}'.format('/'.join(Fsplt[:-1]), outF, ''.join(Fsplt[-1:]))
     f = open(Out, "w+")
 
+    # Sanitize spaces
+    title = ' '.join(title.split())
+    abst = ' '.join(abst.split())
+    auth = ' '.join(auth.split())
+    auth = auth.replace(" , ", ", ") # Oxford comma, please.
+    auth = auth.replace(" : ", ": ").replace(" ; ", "; ")
+    refs = ' '.join(refs.split())
+
     if(XML):
         f.write("<{}>\n".format(_ARTICLE))
-        f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1]))
+        f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1][:-len(_EOUT)-1]))
         f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, title))
-        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, "AUTEUR"))
+        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, auth))
         f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, abst))
-        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, ref))
+        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, refs))
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
