@@ -20,12 +20,20 @@ _AUTEUR = 'auteur'
 _ABSTRACT = 'abstract'
 _BIBLIO = 'biblio'
 
+_ACK = 'acknowledgements'
+_REFS = 'references'
+_CONCL = 'conclusion'
+
 _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
 
 REMOV_TITLE = [',', 'and']
 IGNORE_ME = ['in', 'and', 'for']
+
+ACK = ['Acknowledgements', 'ACKNOWLEDGMENT', 'CONCLUSIONS AND FURTHER WORK']
+REFS = ['References', 'REFERENCES']
+CONCL = ['Discussion', 'Conclusion', 'Conclusions', '7 Conclusion']
 
 _MAX_LEN = 80
 
@@ -38,6 +46,9 @@ def parser(Fname):
     inT = True
     inR = False
     inK = False
+
+    inB = 0 # 0 out, 'r' ref, 'a' ack ...
+    inBC = 0
 
     regex = "Abstract.*\n"
     rregex = "^References\n"
@@ -65,6 +76,10 @@ def parser(Fname):
     title = ""
     watchd = 0
     Wflag = 0
+
+    ac = ""
+    ref = ""
+    cn = ""
 
     ficher = open(Fname, "r")
     abst = ""
@@ -110,6 +125,12 @@ def parser(Fname):
             line = ""
             inW = False
             intT = False
+            if inBC != 0 and inB != 0:
+                inBC -= 1
+            elif inBC == 0 and inB != 0:
+                inB = 0
+            else:
+                inBC = 0
             eolc += 1
         else:
             eolc = 0
@@ -120,6 +141,30 @@ def parser(Fname):
             refs += " "
         if re.search(rregex, line, re.IGNORECASE) or (len(line)>len(rfregex) and line[1:]==rfregex):
             inR = True
+        if inB != 0 and inBC != 0:
+            if inB == 'r':
+                ref += l
+                ref += " "
+            elif inB == 'a':
+                ac += l
+                ac += " "
+            elif inB == 'c':
+                cn += l
+                cn += " "
+            else:
+                pass
+                #pass
+        if inBC == 0 and inB != 0:
+            inB = 0
+        if l in REFS:
+            inB = 'r'
+            inBC = 2
+        if l in ACK:
+            inB = 'a'
+            inBC = 2
+        if l in CONCL:
+            inB = 'c'
+            inBC = 2
         if inW:
             abst += line[:-1]
             abst += ' '
@@ -157,6 +202,10 @@ def parser(Fname):
         f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, auth))
         f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, abst))
         f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, refs))
+        # PLUS
+        f.write("\t<{0}>{1}</{0}>\n".format(_ACK, ac))
+        f.write("\t<{0}>{1}</{0}>\n".format(_REFS, ref))
+        f.write("\t<{0}>{1}</{0}>\n".format(_CONCL, cn))
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
