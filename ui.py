@@ -31,38 +31,42 @@ HTML_code = """
 <html>
 <head>
     <style type="text/css">
-    .window { background: #F3F3F2; }
-    body { margin: 0; background: #F3F3F2;}
+    .window { background: #F3F3F2; height: 100%; display: flex; flex-direction: column;}
+    body { margin: 0; background: #F3F3F2; height: 100%;}
     .toolbar{ display: -webkit-flex; display: -ms-flexbox; display: flex;
     -webkit-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap;
     box-sizing: border-box; padding-left: 8px; max-height: 80px; margin-bottom:
-    0px;}
+    0px; min-height: 56px;}
     .button { color: #424242; text-decoration: none; margin: 0; font-size: 14px;
     font-weight: 400; letter-spacing: 0; opacity: .87;
     line-height: 0px; padding: 0 24px; transition: .2s all ease-in-out;
     padding: 8px; max-height: 64px; overflow:  hidden;
     border:  0; border-radius: 32px; margin: 8px 4px; box-shadow: inset 0 0 0 1px #697F8A;
-    background:  transparent; }
+    background: transparent; min-width: 40px;}
     .button span { display: block; text-align: center; }
     .button:focus {outline: none;}
     .button:hover { background: #aaa; cursor: pointer; transition: .2s all
     ease-in-out; box-shadow: inset 0 0 64px 32px rgba(105, 127, 138, .05); outline:none;}
-    .list { margin: 8px; background: #1E1E21; color: #eee; margin-top: 0;}
+    .list { margin: 8px; background: #1E1E21; color: #eee; margin-top: 0; flex-grow: 1;}
     .files { padding: 0; margin: 0; padding-bottom: 8px;}
     .status { margin: 8px 16px; }
     .ico { width: 24px; height:  24px; }
     li.fhead { background:  #2F2F34; display:  flex; }
     .tb-e { padding:  8px 0; }
     .tb1 {width: 40px; overflow: hidden; text-overflow: ellipsis; padding-left:
-    8px; }
+    8px; min-width: 40px;}
+    input[type="checkbox"]:hover { cursor:  pointer; }
     .sep { width: 1px; background: #5E6063; margin: 12px 8px; opacity: .8; }
     h1.big { line-height: 16px; font-weight: lighter; color: #5E6063; }
     li.file { padding-left: 8px; display: flex;}
     button:disabled:hover, button[disabled]:hover { box-shadow: inset 0 0 0 1px
     #697F8A; background: inherit; cursor: default; }
     button:disabled, button[disabled] { opacity:  .5; }
-    body,html { font-family: Arial; font-size: 11pt; }
+    body,html { font-family: Arial; font-size: 11pt; height: 100%;}
     div.msg { margin: 0.2em; line-height: 1.4em; }
+    #XoT.act { box-shadow: inset 0 0 0 2px #C94F53; }
+    #XoT.act .b-red{ fill: #C94F53 !important; }
+    #XoT.act:hover { background: rgba(201, 79, 83, .3); }
     b { background: #ccc; font-weight: bold; font-size: 10pt;
         padding: 0.1em 0.2em; }
     b.Python { background: #eee; }
@@ -71,6 +75,15 @@ HTML_code = """
     </style>
 
     <script>
+    var XML = false;
+    function anyChecked() {
+        var inp = document.getElementsByClassName("checkb");
+        for (var i = 0; i < inp.length; i++)
+            if (inp[i].type == "checkbox")
+                if (inp[i].checked)
+                    return true;
+        return false;
+    }
     function js_alert(msg) {
         alert(msg);
     }
@@ -107,12 +120,23 @@ HTML_code = """
         add_file(f);
     }
 
+    function XoT() {
+        XML = !XML;
+        var elem = document.querySelector('#XoT');
+        elem.classList.toggle("act");
+    }
+
     function parseF() {
-        var elem = document.querySelector('#fls');
-        elem.innerHTML = "<h4 class='status'>Working . . .</h4>";
-        document.getElementById("add").disabled = true;
-        document.getElementById("start").disabled = true;
-        parse(js_callback_1);
+        if(anyChecked()) {
+            var elem = document.querySelector('#fls');
+            elem.innerHTML = "<h4 class='status'>Working . . .</h4>";
+            document.getElementById("add").disabled = true;
+            document.getElementById("start").disabled = true;
+            document.getElementById("XoT").disabled = true;
+            parse(js_callback_1, XML);
+        } else {
+            alert('None checked');
+        }
     }
 
     window.onload = function(){
@@ -136,6 +160,14 @@ HTML_code = """
                   <path fill="#303f46" fill-rule="evenodd" d="M7 4l14 8-14 8zm1 2v12l4-6z"/>
                 </svg>
             </button>
+            <button id="XoT" class="button" onclick="XoT()">
+                <svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path style="isolation:auto;mix-blend-mode:normal" fill="#546e7a" d="M5 4v1h13v7h1V4H5zm0 7v9h12v-1H6v-8H5z" color="#000" overflow="visible"/>
+                  <path style="isolation:auto;mix-blend-mode:normal" class="b-red" fill="#303f46" d="M18.5 13l-.7.7L20 16H15v1h5.1l-2.3 2.3.7.8 2.8-2.9.7-.7-3.5-3.5z" color="#000" overflow="visible"/>
+                  <path style="isolation:auto;mix-blend-mode:normal" fill="#546e7a" d="M10 7v1h5V7h-5zm0 2v1h3V9h-3zm-2 2v1h8v-1H8zm0 2v1h4v-1H8zm0 2v1h5v-1H8z" color="#000" overflow="visible"/>
+                  <path style="isolation:auto;mix-blend-mode:normal" class="b-red" fill="#303f46" d="M9 10V6H3v4zM5 8L4 9V7h4v1z" color="#000" overflow="visible"/>
+                </svg>
+            </button>
             <div class="sep"></div>"""
 HTML_code += '<h1 class="big">{0} Items</h1>'.format(FCNT)
 HTML_code += """</div>
@@ -143,7 +175,7 @@ HTML_code += """</div>
             <ul class="files" id="fls">"""
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
 for g in gl:
-    HTML_code += '<li class="file"><div class="tb-e tb1"><input type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
+    HTML_code += '<li class="file"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
 
 HTML_code += """</ul>
         </div>
@@ -159,6 +191,7 @@ def main():
     cef.Initialize()
     browser = cef.CreateBrowserSync(url=html_to_data_uri(HTML_code),
                                     window_title=APP_NAME)
+    #browser.SetIcon("./res/pdf.ico")
     set_client_handlers(browser)
     set_javascript_bindings(browser)
     cef.MessageLoop()
@@ -205,7 +238,7 @@ def add_file(f):
     else:
         files.remove(f)
 
-def _parse(js_callback=None):
+def _parse(js_callback=None, xml=True):
     outF = ""
     if js_callback:
         html = '<li class="fhead"><div class="tb-e tb1"><span>Status</span></div><div class="tb-e"><span>Name</span></div></li>'
@@ -213,7 +246,10 @@ def _parse(js_callback=None):
         fls_set(browser, html)
         for g in files:
             q = queue.Queue()
-            t = threading.Thread(target=parser.fromTexttoXML, args=['{}'.format(g), q])
+            if xml:
+                t = threading.Thread(target=parser.fromTexttoXML, args=['{}'.format(g), q])
+            else:
+                t = threading.Thread(target=parser.fromTexttoTXT, args=['{}'.format(g), q])
             t.start()
             outF = q.get()
             html = '<li class="file"><div class="tb-e tb1"><span>OK</span></div><div class="tb-e"><span>{}</span></div></li>'.format(''.join(outF.split('/')[-1:]))

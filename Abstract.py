@@ -76,25 +76,33 @@ class Parser:
             for g in gl:
                 parseFile(g)
 
-    def fromTexttoXML(self, fname):
+    def fromTexttoXML(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
-        parser(Fname, xml=True)
+        r = parser(Fname, xml=True)
+        if q!='': q.put(r)
+        return r
 
-    def fromTexttoTXT(self, fname):
+    def fromTexttoTXT(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
-        parser(Fname, xml=False)
+        r = parser(Fname, xml=False)
+        if q!='': q.put(r)
+        return r
 
-    def fromPDFtoXML(self, fname):
+    def fromPDFtoXML(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        parser(Fname, xml=True)
+        r = parser(Fname, xml=True)
+        if q!='': q.put(r)
+        return r
 
-    def fromPDFtoTXT(self, fname):
+    def fromPDFtoTXT(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        parser(Fname, xml=False)
+        r = parser(Fname, xml=False)
+        if q!='': q.put(r)
+        return r
 
     """gl = glob.glob('{}/*.{}'.format(wd, _EXT))
     outD = '{}/{}'.format(wd, outF)
@@ -362,6 +370,8 @@ def parser(Fname, xml=XML):
     # print(abst[:_MAX_LEN])
     # print("\n")
     # print(title[:_MAX_LEN])
+    #
+    return Out
 
 
 
