@@ -24,26 +24,43 @@ gl = [g.replace('\\','/') for g in gl]
 
 files = []
 
+FCNT = len(gl)
+
 HTML_code = """
 <!DOCTYPE html>
 <html>
 <head>
     <style type="text/css">
     .window { background: #F3F3F2; }
-    body { margin: 0; }
+    body { margin: 0; background: #F3F3F2;}
     .toolbar{ display: -webkit-flex; display: -ms-flexbox; display: flex;
     -webkit-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap;
-    box-sizing: border-box;}
+    box-sizing: border-box; padding-left: 8px; max-height: 80px; margin-bottom:
+    0px;}
     .button { color: #424242; text-decoration: none; margin: 0; font-size: 14px;
-    font-weight: 400; line-height: 24px; letter-spacing: 0; opacity: .87;
-    line-height: 64px; padding: 0 24px; transition: .2s all ease-in-out; }
+    font-weight: 400; letter-spacing: 0; opacity: .87;
+    line-height: 0px; padding: 0 24px; transition: .2s all ease-in-out;
+    padding: 8px; max-height: 64px; overflow:  hidden;
+    border:  0; border-radius: 32px; margin: 8px 4px; box-shadow: inset 0 0 0 1px #697F8A;
+    background:  transparent; }
     .button span { display: block; text-align: center; }
+    .button:focus {outline: none;}
     .button:hover { background: #aaa; cursor: pointer; transition: .2s all
-    ease-in-out; }
-    .list { margin: 8px; background: #1E1E21; color: #eee; }
-    .files { padding: 8px 0; }
+    ease-in-out; box-shadow: inset 0 0 64px 32px rgba(105, 127, 138, .05); outline:none;}
+    .list { margin: 8px; background: #1E1E21; color: #eee; margin-top: 0;}
+    .files { padding: 0; margin: 0; padding-bottom: 8px;}
     .status { margin: 8px 16px; }
-    li.file { padding-left: 8px; padding: 8px; }
+    .ico { width: 24px; height:  24px; }
+    li.fhead { background:  #2F2F34; display:  flex; }
+    .tb-e { padding:  8px 0; }
+    .tb1 {width: 40px; overflow: hidden; text-overflow: ellipsis; padding-left:
+    8px; }
+    .sep { width: 1px; background: #5E6063; margin: 12px 8px; opacity: .8; }
+    h1.big { line-height: 16px; font-weight: lighter; color: #5E6063; }
+    li.file { padding-left: 8px; display: flex;}
+    button:disabled:hover, button[disabled]:hover { box-shadow: inset 0 0 0 1px
+    #697F8A; background: inherit; cursor: default; }
+    button:disabled, button[disabled] { opacity:  .5; }
     body,html { font-family: Arial; font-size: 11pt; }
     div.msg { margin: 0.2em; line-height: 1.4em; }
     b { background: #ccc; font-weight: bold; font-size: 10pt;
@@ -93,6 +110,8 @@ HTML_code = """
     function parseF() {
         var elem = document.querySelector('#fls');
         elem.innerHTML = "<h4 class='status'>Working . . .</h4>";
+        document.getElementById("add").disabled = true;
+        document.getElementById("start").disabled = true;
         parse(js_callback_1);
     }
 
@@ -104,14 +123,27 @@ HTML_code = """
 <body>
     <div class="window">
         <div class="toolbar">
-            <button class="button" onclick="lol('btn')">Add files</button>
-            <button class="button" onclick="plop('btn')">plop</button>
-            <button class="button" onclick="parseF()">Parse !</button>
-        </div>
+            <button id="add" class="button" onclick="lol('btn')">
+                <svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path style="isolation:auto;mix-blend-mode:normal" fill="#303f46" d="M12 11l-1 1v9h2v-8h8v-2z" color="#000" overflow="visible"/>
+                  <path style="isolation:auto;mix-blend-mode:normal" fill="#546e7a" d="M11 13l2-2V3h-2v8H3v2h8z" color="#000" overflow="visible"/>
+                </svg>
+            </button>
+            <!--button class="button" onclick="plop('btn')">plop</button-->
+            <button id="start" class="button" onclick="parseF()">
+                <svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                  <path fill="#546e7a" d="M8 5l12 7-12 7z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+                  <path fill="#303f46" fill-rule="evenodd" d="M7 4l14 8-14 8zm1 2v12l4-6z"/>
+                </svg>
+            </button>
+            <div class="sep"></div>"""
+HTML_code += '<h1 class="big">{0} Items</h1>'.format(FCNT)
+HTML_code += """</div>
         <div class="list">
             <ul class="files" id="fls">"""
+HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
 for g in gl:
-    HTML_code += '<li class="file"><input type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"> {1}<br></li>'.format(g, ''.join(g.split('/')[-1:]))
+    HTML_code += '<li class="file"><div class="tb-e tb1"><input type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
 
 HTML_code += """</ul>
         </div>
@@ -176,7 +208,7 @@ def add_file(f):
 def _parse(js_callback=None):
     outF = ""
     if js_callback:
-        html = ""
+        html = '<li class="fhead"><div class="tb-e tb1"><span>Status</span></div><div class="tb-e"><span>Name</span></div></li>'
         browser = js_callback.GetFrame().GetBrowser()
         fls_set(browser, html)
         for g in files:
@@ -184,7 +216,7 @@ def _parse(js_callback=None):
             t = threading.Thread(target=parser.fromTexttoXML, args=['{}'.format(g), q])
             t.start()
             outF = q.get()
-            html = "<li class='file'>{}</li>".format(''.join(outF.split('/')[-1:]))
+            html = '<li class="file"><div class="tb-e tb1"><span>OK</span></div><div class="tb-e"><span>{}</span></div></li>'.format(''.join(outF.split('/')[-1:]))
             # js_print(js_callback.GetFrame().GetBrowser(),
             #          "Parser", "file_load",
             #          "> {}".format(g))
