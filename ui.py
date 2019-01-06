@@ -45,8 +45,8 @@ HTML_code = """
     background: transparent; min-width: 40px;}
     .button span { display: block; text-align: center; }
     .button:focus {outline: none;}
-    .button:hover { background: #aaa; cursor: pointer; transition: .2s all
-    ease-in-out; box-shadow: inset 0 0 64px 32px rgba(105, 127, 138, .05); outline:none;}
+    .button:hover { background: rgba(105, 127, 138, .3); cursor: pointer; transition: .2s all
+    ease-in-out; box-shadow: inset 0 0 64px 32px rgba(105, 127, 138, .3); outline:none;}
     .list { margin: 8px; background: #1E1E21; color: #eee; margin-top: 0; flex-grow: 1;}
     .files { padding: 0; margin: 0; padding-bottom: 8px;}
     .status { margin: 8px 16px; }
@@ -67,11 +67,36 @@ HTML_code = """
     #XoT.act { box-shadow: inset 0 0 0 2px #C94F53; }
     #XoT.act .b-red{ fill: #C94F53 !important; }
     #XoT.act:hover { background: rgba(201, 79, 83, .3); }
+    .tb-e.tb1 input { width: 16px; height: 16px; background: #eee; padding: 0;
+    margin: 0; border-radius: 50%; margin-left: 4px; }
     b { background: #ccc; font-weight: bold; font-size: 10pt;
         padding: 0.1em 0.2em; }
     b.Python { background: #eee; }
     i { font-family: Courier new; font-size: 10pt; border: #eee 1px solid;
         padding: 0.1em 0.2em; }
+    .animated { animation: show 0.3s 0.25s ease-in-out 1 forwards; opacity: 0;
+    transform: translate(7%, 0); transition: height 2s ease-in-out; overflow: hidden; max-width: 90%;}
+    .animated:nth-child(1) {animation-delay: .2s;}
+    .animated:nth-child(2) {animation-delay: .3s;}
+    .animated:nth-child(3) {animation-delay: .4s;}
+    .animated:nth-child(4) {animation-delay: .5s;}
+    .animated:nth-child(5) {animation-delay: .6s;}
+    .animated:nth-child(6) {animation-delay: .7s;}
+    .animated:nth-child(7) {animation-delay: .8s;}
+    .animated:nth-child(8) {animation-delay: .9s;}
+    .animated:nth-child(9) {animation-delay: 1s;}
+    .animated:nth-child(10) {animation-delay: 1.1s;}
+    .animated:nth-child(11) {animation-delay: 1.2s;}
+    .animated:nth-child(12) {animation-delay: 1.3s;}
+    .animated:nth-child(13) {animation-delay: 1.4s;}
+    @keyframes show {
+        100% {
+            opacity: 1;
+            transform: translate(0,0);
+            max-width: 100%;
+        }
+    }
+
     </style>
 
     <script>
@@ -175,7 +200,7 @@ HTML_code += """</div>
             <ul class="files" id="fls">"""
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
 for g in gl:
-    HTML_code += '<li class="file"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
+    HTML_code += '<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
 
 HTML_code += """</ul>
         </div>
@@ -228,10 +253,6 @@ def set_javascript_bindings(browser):
     bindings.SetObject("external", external)
     browser.SetJavascriptBindings(bindings)
 
-def list_files():
-    for i in range(0,9):
-        js_print(self.browser, "Python", "py_callback", "{}".format(i))
-
 def add_file(f):
     if f not in files:
         files.append(f)
@@ -252,7 +273,7 @@ def _parse(js_callback=None, xml=True):
                 t = threading.Thread(target=parser.fromTexttoTXT, args=['{}'.format(g), q])
             t.start()
             outF = q.get()
-            html = '<li class="file"><div class="tb-e tb1"><span>OK</span></div><div class="tb-e"><span>{}</span></div></li>'.format(''.join(outF.split('/')[-1:]))
+            html = '<li class="file animated"><div class="tb-e tb1"><span>OK</span></div><div class="tb-e"><span>{}</span></div></li>'.format(''.join(outF.split('/')[-1:]))
             # js_print(js_callback.GetFrame().GetBrowser(),
             #          "Parser", "file_load",
             #          "> {}".format(g))
@@ -273,32 +294,15 @@ def js_print(browser, lang, event, msg):
     # Execute Javascript function "js_print"
     browser.ExecuteFunction("js_print", lang, event, msg)
 
-def set_global_handler():
-    # A global handler is a special handler for callbacks that
-    # must be set before Browser is created using
-    # SetGlobalClientCallback() method.
-    global_handler = GlobalHandler()
-    cef.SetGlobalClientCallback("OnAfterCreated",
-                                global_handler.OnAfterCreated)
 
 def set_client_handlers(browser):
-    client_handlers = [LoadHandler(), DisplayHandler()]
-    for handler in client_handlers:
-        browser.SetClientHandler(handler)
+    # client_handlers = [LoadHandler(), DisplayHandler()]
+    # for handler in client_handlers:
+    #     browser.SetClientHandler(handler)
+    pass
 
 def check_versions():
     ver = cef.GetVersion()
-
-class GlobalHandler(object):
-    def OnAfterCreated(self, browser, **_):
-        """Called after a new browser is created."""
-        # js_print(browser, "Python", "OnAfterCreated",
-        #          "This will probably never display as DOM is not yet loaded")
-        # Delay print by 0.5 sec, because js_print is not available yet
-        # args = [browser, "Python", "OnAfterCreated",
-        #         "(Delayed) Browser id="+str(browser.GetIdentifier())]
-        # threading.Timer(0.5, js_print, args).start()
-        pass
 
 class LoadHandler(object):
     def OnLoadingStateChange(self, browser, is_loading, **_):
@@ -308,26 +312,6 @@ class LoadHandler(object):
             # js_print(browser, "Python", "OnLoadingStateChange",
             #          "Loading is complete")
             pass
-
-class DisplayHandler(object):
-    def OnConsoleMessage(self, browser, message, **_):
-        """Called to display a console message."""
-        # This will intercept js errors, see comments in OnAfterCreated
-        if "error" in message.lower() or "uncaught" in message.lower():
-            # Prevent infinite recurrence in case something went wrong
-            if "js_print is not defined" in message.lower():
-                if hasattr(self, "js_print_is_not_defined"):
-                    print("Python: OnConsoleMessage: "
-                          "Intercepted Javascript error: "+message)
-                    return
-                else:
-                    self.js_print_is_not_defined = True
-            # Delay print by 0.5 sec, because js_print may not be
-            # available yet due to DOM not ready.
-            args = [browser, "Python", "OnConsoleMessage",
-                    "(Delayed) Intercepted Javascript error: <i>{error}</i>"
-                    .format(error=message)]
-            threading.Timer(0.5, js_print, args).start()
 
 class External(object):
     def __init__(self, browser):
@@ -342,8 +326,6 @@ class External(object):
         def py_callback(msg_from_js):
             js_print(self.browser, "Python", "py_callback", msg_from_js)
         js_callback.Call("String sent from Python", py_callback)
-
-
 
 if __name__ == '__main__':
     main()
