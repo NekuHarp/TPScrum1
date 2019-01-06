@@ -38,7 +38,7 @@ _FLAGS = [_SFLAG+i for i in _CFLAG]
 
 SKIP = ['IEEE TRANSACTIONS ON SPEECH AND AUDIO PROCESSING, VOL. 12, NO. 4, JULY 2004', '401']
 
-REMOV_TITLE = [',', 'and']
+REMOV_TITLE = [',', 'and', 'a,*,', 'a,', 'b,1', 'of']
 IGNORE_ME = ['in', 'and', 'for']
 
 DISC = ['Discussion']
@@ -56,6 +56,76 @@ Text = False
 
 _COUNT_SZ = 20
 COUNT = 0
+
+class Parser:
+    def __init__(self, wd='./dossier'):
+        self.name = APP_NAME
+        self.wd = wd
+        self.outF = outF
+        self.outD = '{}/{}'.format(self.wd, self.outF)
+
+        self.checkDir()
+
+    def checkDir(self):
+        if not os.path.exists(self.outD):
+            os.makedirs(self.outD)
+
+    def parseDir(self, wd):
+        if os.path.exists(wd):
+            gl = glob.glob('{}/*.{}'.format(wd, _EXT))
+            for g in gl:
+                parseFile(g)
+
+    def fromTexttoXML(self, fname):
+        Fname = '{}.{}'.format(fname[:-4], _TXT)
+        parser(Fname, xml=True)
+
+    def fromTexttoTXT(self, fname):
+        Fname = '{}.{}'.format(fname[:-4], _TXT)
+        parser(Fname, xml=False)
+
+    def fromPDFtoXML(self, fname):
+        Fname = '{}.{}'.format(fname[:-4], _TXT)
+        p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+        p.wait()
+        parser(Fname, xml=True)
+
+    def fromPDFtoTXT(self, fname):
+        Fname = '{}.{}'.format(fname[:-4], _TXT)
+        p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+        p.wait()
+        parser(Fname, xml=False)
+
+    """gl = glob.glob('{}/*.{}'.format(wd, _EXT))
+    outD = '{}/{}'.format(wd, outF)
+
+    print('[100m {} [49m\n'.format(APP_NAME))
+    COUNT = len(gl)
+    pos = 0
+    gl = [g.replace('\\','/') for g in gl]
+
+    if not os.path.exists(outD):
+        os.makedirs(outD)
+        progress(pos, COUNT, _COUNT_SZ)
+        status('{}'.format(HELP_MSG[0]))
+    for g in gl:
+        pos += 1
+        progress(pos, COUNT, _COUNT_SZ)
+        fnam = os.path.basename(g)
+        if len(fnam)+4>_MAX_LEN: fnam = fnam[:(_MAX_LEN-4-3)]+"..."
+        else: fnam += ' '*(_MAX_LEN-4-len(fnam))
+        status(' > {}'.format(fnam))
+
+        Fname = '{}.{}'.format(g[:-4], _TXT)
+        p = subprocess.Popen([_APP , g , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+        p.wait()
+        parser(Fname)
+    print('\n'+HELP_MSG[3])"""
+
+
+
+
+
 
 def progress(pos, total, sz):
     step = float(pos)/total
@@ -75,12 +145,19 @@ def status(str):
 #     progress(i, 10, 20)
 #     status('{}'.format(i))
 
-def parser(Fname):
+def parser(Fname, xml=XML):
     inW = False
     inR = False
     inT = True
     inR = False
     inK = False
+
+    if(xml):
+        XML = True
+        _EOUT = 'xml'
+    else:
+        XML = False
+        _EOUT = 'txt'
 
     inB = 0 # 0 out, 'r' ref, 'a' ack ...
     inBC = 0
@@ -148,10 +225,14 @@ def parser(Fname):
         #    title = ""
         #    watchd = 0
             #continue
-        if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ") if len(i)>0]:
-            # print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
-            inT = False
-            inW = False
+        try:
+            if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")]:
+                #print(" {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1]))
+                inT = False
+                inW = False
+        except:
+            # print(l+"\n")
+            pass
         if Wflag == 0 and re.search(uregex, line, re.IGNORECASE):
             inT = False
             title = ""
@@ -235,6 +316,7 @@ def parser(Fname):
         if not inW and not inT and Wflag == 0 and not re.search(uregex, line, re.IGNORECASE):
             auth += line[:-1]
             auth += ' '
+            #print(line[:-1])
         watchd+=1
     """
         <article>
@@ -250,6 +332,8 @@ def parser(Fname):
     Fsplt = outFname.split('/')
     Out = '{}/{}/{}'.format('/'.join(Fsplt[:-1]), outF, ''.join(Fsplt[-1:]))
     f = open(Out, "w+")
+
+    # print(Out)
 
     # Sanitize spaces
     title = ' '.join(title.split())
@@ -281,7 +365,7 @@ def parser(Fname):
 
 
 
-def getFiles(wd):
+def getFiles(wd, xml=XML):
     gl = glob.glob('{}/*.{}'.format(wd, _EXT))
     outD = '{}/{}'.format(wd, outF)
 
@@ -305,7 +389,7 @@ def getFiles(wd):
         Fname = '{}.{}'.format(g[:-4], _TXT)
         p = subprocess.Popen([_APP , g , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        parser(Fname)
+        parser(Fname, xml)
     print('\n'+HELP_MSG[3])
 
 if __name__ == '__main__':
@@ -322,6 +406,7 @@ if __name__ == '__main__':
     # print(args)
     XML = args.xml
     if(XML):
+        print('XML')
         _EOUT = 'xml'
     Text = args.text
 
@@ -329,4 +414,4 @@ if __name__ == '__main__':
     # print(arg)
     # print(_FLAGS)
 
-    getFiles(args.folder)
+    getFiles(args.folder, XML)
