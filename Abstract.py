@@ -5,6 +5,10 @@ import glob
 import os
 import subprocess
 import argparse
+import time
+
+APP_NAME = 'PDF Parser 1.1'
+HELP_MSG = ['Creating output folder . . .','','','Tasks complete !']
 
 outF = 'out'
 _APP = 'pdftotext'
@@ -37,16 +41,39 @@ SKIP = ['IEEE TRANSACTIONS ON SPEECH AND AUDIO PROCESSING, VOL. 12, NO. 4, JULY 
 REMOV_TITLE = [',', 'and']
 IGNORE_ME = ['in', 'and', 'for']
 
-DISC = ['Discussion', '5. Discussion', '7. Discussion']
+DISC = ['Discussion']
 ACK = ['Acknowledgements', 'ACKNOWLEDGMENT']
 REFS = ['References', 'REFERENCES']
-CONCL = ['Conclusion', 'Conclusions', '7 Conclusion', '6. Conclusion', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', '8. Conclusions and future work', 'Conclusion and Future Work', 'IV. CONCLUSION']
-INTR = ['Introduction', 'I. INTRODUCTION', '1. Introduction', 'INTRODUCTION', '1 Introduction']
+CONCL = ['Conclusion', 'Conclusions', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
+INTR = ['Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
 
 _MAX_LEN = 80
 
+_ASCII_TEXT = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '
+
 XML = False
 Text = False
+
+_COUNT_SZ = 20
+COUNT = 0
+
+def progress(pos, total, sz):
+    step = float(pos)/total
+    f = step*sz
+    f = int(f)
+    sys.stdout.write('\r|'+'[7m [27m'*f + ' '*(sz-f)+'| [7m[{:>7.2%}][27m'.format(step))
+    sys.stdout.flush()
+
+def status(str):
+    sys.stdout.write(u"\u001b[" + "A") # Move up
+    sys.stdout.write('\r'+str+'\n')
+    sys.stdout.flush()
+
+# print '[100m {} [49m\n'.format(APP_NAME)
+# for i in range(11):
+#     time.sleep(0.2)
+#     progress(i, 10, 20)
+#     status('{}'.format(i))
 
 def parser(Fname):
     inW = False
@@ -100,6 +127,8 @@ def parser(Fname):
     kwind = ""
     for line in ficher:
         l = line[:-1] if len(line)>1 else line
+        s = ''.join([i for i in l if ord(i)<127])
+        st = ''.join([i for i in l if i in _ASCII_TEXT]).lstrip()
         if l in SKIP:
             continue
         if watchd>0 and title=="":
@@ -120,7 +149,7 @@ def parser(Fname):
         #    watchd = 0
             #continue
         if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")]:
-            print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
+            # print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
             inT = False
             inW = False
         if Wflag == 0 and re.search(uregex, line, re.IGNORECASE):
@@ -128,7 +157,7 @@ def parser(Fname):
             title = ""
             watchd = 0
         if inT:
-            print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
+            # print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
             title += line[:-1]
             title += " "
         if Wflag == 0 and re.search(regex, line, re.IGNORECASE):
@@ -157,23 +186,24 @@ def parser(Fname):
             inR = True
         if inBC == 0 and inB != 0:
             inB = 0
-        if l in REFS:
+        if st in REFS:
             inB = 'r'
             inBC = 2
             continue
-        if l in ACK:
+        if s in ACK:
             inB = 'a'
             inBC = 2
             continue
-        if l in DISC:
+        if st in DISC:
             inB = 'd'
             inBC = 2
+            # print l, st
             continue
-        if l in INTR:
+        if st in INTR:
             inB = 'i'
             inBC = 2
             continue
-        if l in CONCL:
+        if st in CONCL:
             inB = 'c'
             inBC = 2
             continue
@@ -224,6 +254,7 @@ def parser(Fname):
     auth = ' '.join(auth.split())
     auth = auth.replace(" , ", ", ") # Oxford comma, please.
     auth = auth.replace(" : ", ": ").replace(" ; ", "; ")
+    if len(refs) <=1 and len(ref)>1: refs = ref;
     refs = ' '.join(refs.split())
 
     if(XML):
@@ -241,24 +272,38 @@ def parser(Fname):
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
-    print(abst[:_MAX_LEN])
-    print("\n")
-    print(title[:_MAX_LEN])
+    # print(abst[:_MAX_LEN])
+    # print("\n")
+    # print(title[:_MAX_LEN])
 
 
 
 def getFiles(wd):
     gl = glob.glob('{}/*.{}'.format(wd, _EXT))
     outD = '{}/{}'.format(wd, outF)
+
+    print '[100m {} [49m\n'.format(APP_NAME)
+    COUNT = len(gl)
+    pos = 0
+
     if not os.path.exists(outD):
         os.makedirs(outD)
+        progress(pos, COUNT, _COUNT_SZ)
+        status('{}'.format(HELP_MSG[0]))
     for g in gl:
+        pos += 1
+        progress(pos, COUNT, _COUNT_SZ)
+        fnam = os.path.basename(g)
+        if len(fnam)+4>_MAX_LEN: fnam = fnam[:(_MAX_LEN-4-3)]+"..."
+        else: fnam += ' '*(_MAX_LEN-4-len(fnam))
+        status(' > {}'.format(fnam))
+
         Fname = '{}.{}'.format(g[:-4], _TXT)
-        p = subprocess.Popen([_APP , g , Fname])
+        p = subprocess.Popen([_APP , g , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
 
         parser(Fname)
-
+    print('\n'+HELP_MSG[3])
 
 if __name__ == '__main__':
     p = argparse.ArgumentParser(description='scientific articles parser')
@@ -271,14 +316,14 @@ if __name__ == '__main__':
                         help='Save as XML')
 
     args = p.parse_args()
-    print(args)
+    # print(args)
     XML = args.xml
     if(XML):
         _EOUT = 'xml'
     Text = args.text
 
     arg = sys.argv
-    print(arg)
-    print(_FLAGS)
+    # print(arg)
+    # print(_FLAGS)
 
     getFiles(args.folder)
