@@ -61,7 +61,7 @@ def progress(pos, total, sz):
     step = float(pos)/total
     f = step*sz
     f = int(f)
-    sys.stdout.write('\r|'+'[7m [27m'*f + ' '*(sz-f)+'| [7m[{:>7.2%}][27m'.format(step))
+    sys.stdout.write('\r|'+'[7m [27m'*f + ' '*(sz-f)+'| [7m[{:>4.0%}][27m'.format(step))
     sys.stdout.flush()
 
 def status(str):
@@ -148,7 +148,7 @@ def parser(Fname):
         #    title = ""
         #    watchd = 0
             #continue
-        if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")]:
+        if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ") if len(i)>0]:
             # print " {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1])
             inT = False
             inW = False
@@ -170,6 +170,9 @@ def parser(Fname):
             intT = False
             if inBC != 0 and inB != 0:
                 inBC -= 1
+            elif inBC == 0 and len(nt.lstrip())<=3:
+                inBC = 2
+                inB = 'i'
             elif inBC == 0 and inB != 0:
                 inB = 0
             else:
@@ -196,7 +199,7 @@ def parser(Fname):
             continue
         if st in DISC:
             inB = 'd'
-            inBC = 2
+            inBC = 4
             # print l, st
             continue
         if st in INTR:
@@ -282,9 +285,10 @@ def getFiles(wd):
     gl = glob.glob('{}/*.{}'.format(wd, _EXT))
     outD = '{}/{}'.format(wd, outF)
 
-    print '[100m {} [49m\n'.format(APP_NAME)
+    print('[100m {} [49m\n'.format(APP_NAME))
     COUNT = len(gl)
     pos = 0
+    gl = [g.replace('\\','/') for g in gl]
 
     if not os.path.exists(outD):
         os.makedirs(outD)
@@ -301,7 +305,6 @@ def getFiles(wd):
         Fname = '{}.{}'.format(g[:-4], _TXT)
         p = subprocess.Popen([_APP , g , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-
         parser(Fname)
     print('\n'+HELP_MSG[3])
 
