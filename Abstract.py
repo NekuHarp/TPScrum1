@@ -32,6 +32,8 @@ _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
 
+SKIP = ['IEEE TRANSACTIONS ON SPEECH AND AUDIO PROCESSING, VOL. 12, NO. 4, JULY 2004', '401']
+
 REMOV_TITLE = [',', 'and']
 IGNORE_ME = ['in', 'and', 'for']
 
@@ -39,6 +41,7 @@ DISC = ['Discussion', '5. Discussion', '7. Discussion']
 ACK = ['Acknowledgements', 'ACKNOWLEDGMENT']
 REFS = ['References', 'REFERENCES']
 CONCL = ['Conclusion', 'Conclusions', '7 Conclusion', '6. Conclusion', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', '8. Conclusions and future work', 'Conclusion and Future Work', 'IV. CONCLUSION']
+INTR = ['Introduction', 'I. INTRODUCTION', '1. Introduction', 'INTRODUCTION', '1 Introduction']
 
 _MAX_LEN = 80
 
@@ -97,7 +100,9 @@ def parser(Fname):
     kwind = ""
     for line in ficher:
         l = line[:-1] if len(line)>1 else line
-        if watchd>1 and title=="":
+        if l in SKIP:
+            continue
+        if watchd>0 and title=="":
             inT = True
         if inK and line != eol:
             kwind += line[:-1]
@@ -164,6 +169,10 @@ def parser(Fname):
             inB = 'd'
             inBC = 2
             continue
+        if l in INTR:
+            inB = 'i'
+            inBC = 2
+            continue
         if l in CONCL:
             inB = 'c'
             inBC = 2
@@ -178,6 +187,9 @@ def parser(Fname):
             elif inB == 'd':
                 ds += l
                 ds += " "
+            elif inB == 'i':
+                nt += l
+                nt += " "
             elif inB == 'c':
                 cn += l
                 cn += " "
