@@ -60,10 +60,10 @@ _COUNT_SZ = 20
 COUNT = 0
 
 class Parser:
-    def __init__(self, wd='./dossier'):
+    def __init__(self, wd='./dossier', outf=outF):
         self.name = APP_NAME
         self.wd = wd
-        self.outF = outF
+        self.outF = outf
         self.outD = '{}/{}'.format(self.wd, self.outF)
 
         self.checkDir()

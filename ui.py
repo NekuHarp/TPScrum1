@@ -10,7 +10,10 @@ import queue
 
 from Abstract import Parser
 
-parser = Parser()
+wd='./dossier/'
+outF = 'outF'
+
+parser = Parser(wd, outF)
 # parser.fromTexttoXML('./dossier/Lin_2004_Rouge.txt')
 # parser.fromTexttoTXT('./dossier/Lin_2004_Rouge.txt')
 # parser.fromPDFtoXML('./dossier/Lin_2004_Rouge.pdf')
@@ -18,7 +21,6 @@ parser = Parser()
 
 APP_NAME = 'PDF Parser 1.1'
 
-wd=''
 gl = parser.listDir(wd)
 
 files = []
@@ -66,8 +68,7 @@ HTML_code = """
     #XoT.act { box-shadow: inset 0 0 0 2px #C94F53; }
     #XoT.act .b-red{ fill: #C94F53 !important; }
     #XoT.act:hover { background: rgba(201, 79, 83, .3); }
-    .tb-e.tb1 input { width: 16px; height: 16px; background: #eee; padding: 0;
-    margin: 0; border-radius: 50%; margin-left: 4px; }
+    .tb-e.tb1 input { padding: 0; margin: 0; margin-left: 4px; }
     b { background: #ccc; font-weight: bold; font-size: 10pt;
         padding: 0.1em 0.2em; }
     b.Python { background: #eee; }
@@ -101,6 +102,39 @@ HTML_code = """
     .pane-title { font-size: 1.75em; font-weight: bold; line-height:  1;
     margin-bottom: .75em; margin-top:  0; color: #2F2F34; }
 
+    .checkb { vertical-align: middle; -webkit-appearance: none; display:
+    inline-block; position: relative; width: 16px; height: 16px; font-size: inherit;
+    border-radius: 3px; background-color: #c2c5c9; transition: background-color
+    0.16s cubic-bezier(0.5, 0.15, 0.2, 1); margin: 4px 0 0; margin-top: 1px \9;
+    line-height: normal; }
+    input[type="checkbox"]:active, input[type="checkbox"]:checked {
+    background-color: #303f46; } input[type="checkbox"]:after { width: 10.56px;
+    margin: -1px; transform: translate3d(0, 0, 0) rotate(-45deg) scale(0);
+    transition-delay: .05s; } input[type="checkbox"]:before { width: 5.28px;
+    transform: translate3d(0, 0, 0) rotate(225deg) scale(0); }
+    input[type="checkbox"]:before, input[type="checkbox"]:after { content: "";
+    position: absolute; top: 12px; left: 6.4px; height: 2px; border-radius: 1px;
+    background-color: #e8eaed; transform-origin: 0 0; opacity: 0; transition:
+    transform 0.1s cubic-bezier(0.5, 0.15, 0.2, 1), opacity 0.1s cubic-bezier(0.5,
+    0.15, 0.2, 1); }
+    input[type="checkbox"]:checked:after { opacity: 1; transform: translate3d(0, 0,
+    0) rotate(-45deg) scale(1); transition-delay: 0; }
+    input[type="checkbox"]:checked:before { opacity: 1; transform: translate3d(0, 0,
+    0) rotate(225deg) scale(1); transition-delay: .05s; }
+    input[type="checkbox"]:before, input[type="checkbox"]:after { background-color:
+    #fff; }
+    input[type="checkbox"]:active, input[type="checkbox"]:focus { outline:  none; }
+
+    h4.small-title { margin-bottom: .25rem; font-size: 1.2em; }
+    span.muted { opacity:  .8; }
+    input.input-text { border: none; background-color: rgba(0,0,0,.1); border-color:
+    rgba(0,0,0,.3); height: 32px; padding: 10px; -webkit-box-sizing: border-box;
+    -webkit-transition: background-color .15s ease,border .15s ease; border-radius:
+    3px; border-style: solid; border-width: 1px; box-sizing: border-box; width:
+    100%; line-height:  32px; color: #222; margin-top:  .75em; transition:  .2s all
+    ease-in-out; }
+    input.input-text:focus { outline:  none; box-shadow: 0 0 0 2px rgba(0,0,0,.2); }
+
     .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
     display: block; margin-bottom: .5em;}
     .panels-menu li.selected{ border-left:  8px solid; border-color: #F3F3F2; }
@@ -130,6 +164,11 @@ HTML_code = """
 
     <script>
     var XML = false;
+    var timeout;
+    var T = true;
+
+    document.onkeydown = checkKey;
+
     function anyChecked() {
         var inp = document.getElementsByClassName("checkb");
         for (var i = 0; i < inp.length; i++)
@@ -210,6 +249,41 @@ HTML_code = """
         }
     }
 
+    function resetT() {
+        T = true;
+    }
+
+    function checkKey(e) {
+        e = e || window.event;
+
+        if (e.keyCode == '38') {
+            // up arrow
+        }
+        else if (e.keyCode == '83') {
+            // s
+        }
+        else if (e.keyCode == '13') {
+            // Enter
+        }
+        else if (e.keyCode == '32') {
+            // Space
+        }
+        else if (e.keyCode == '27') {
+            // Esc
+        }
+        else if (e.keyCode == '188') {
+            if(T) {
+                menu();
+                T = false;
+                timeout = setTimeout(resetT, 750)
+            }
+            // ,
+        }
+        else if (e.keyCode == '191') {
+            // /
+        }
+    }
+
     window.onload = function(){
         html_to_data_uri("test", js_callback_1);
     };
@@ -263,6 +337,7 @@ HTML_code += """</ul>
         <div class="pane p0">
             <ul class="panels-menu">
                 <li class="lCore selected"><a class="icon ico-c" onclick="setPane('Core');">Core</a></li>
+                <li class="lKeys"><a class="icon ico-k" onclick="setPane('Keys');">Keybind</a></li>
                 <li class="lAbout"><a class="icon ico-a" onclick="setPane('About');">About</a></li>
             </ul>
         </div>
@@ -271,6 +346,17 @@ HTML_code += """</ul>
                 <h2 class="pane-title">Core Settings</h2>
                 <div class="pane-block">
                     <span>Change core comportement</span>
+                </div>
+                <div class="pane-block">
+                    <h4 class="small-title">Search path</h4>
+                    <span class="muted">Folder where source file are</span>
+                    <input class="input-text" name="path" type="text" placeholder="path" maxlength="256" value="{0}">
+                </div>
+            </div>
+            <div class="panels-content" id="Keys">
+                <h2 class="pane-title">Keybind</h2>
+                <div class="pane-block">
+                    <span>TODO: Keys</span>
                 </div>
             </div>
             <div class="panels-content" id="About">
@@ -289,7 +375,7 @@ HTML_code += """</ul>
     <div id="console"></div>
 </body>
 </html>
-"""
+""".format(wd)
 
 def main():
     check_versions()
