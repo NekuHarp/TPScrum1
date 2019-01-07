@@ -72,6 +72,25 @@ class Parser:
         if not os.path.exists(self.outD):
             os.makedirs(self.outD)
 
+    def _update(self):
+        self.outD = '{}/{}'.format(self.wd, self.outF)
+        self.checkDir()
+
+    def setWD(self, wd):
+        if os.path.exists(wd):
+            self.wd = wd
+            self._update()
+            return True
+        else:
+            return False
+
+    def setOut(self, outf):
+        self.outF = outf
+        if not os.path.exists(self.outF):
+            os.makedirs(self.outF)
+        self._update()
+        return True
+
     def listDir(self, wd=''):
         if wd == '':
             wd = self.wd
@@ -90,7 +109,7 @@ class Parser:
             else:
                 p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
                 p.wait()
-        r = parser(Fname, xml=True)
+        r = parser(Fname, xml=True, outf=self.outF)
         if q!='': q.put(r)
         return r
 
@@ -102,7 +121,7 @@ class Parser:
             else:
                 p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
                 p.wait()
-        r = parser(Fname, xml=False)
+        r = parser(Fname, xml=False, outf=self.outF)
         if q!='': q.put(r)
         return r
 
@@ -110,7 +129,7 @@ class Parser:
         Fname = '{}.{}'.format(fname[:-4], _TXT)
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        r = parser(Fname, xml=True)
+        r = parser(Fname, xml=True, outf=self.outF)
         if q!='': q.put(r)
         return r
 
@@ -118,7 +137,7 @@ class Parser:
         Fname = '{}.{}'.format(fname[:-4], _TXT)
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        r = parser(Fname, xml=False)
+        r = parser(Fname, xml=False, outf=self.outF)
         if q!='': q.put(r)
         return r
 
@@ -150,7 +169,7 @@ def status(str):
 #     progress(i, 10, 20)
 #     status('{}'.format(i))
 
-def parser(Fname, xml=XML):
+def parser(Fname, xml=XML, outf=outF):
     inW = False
     inR = False
     inT = True
@@ -341,7 +360,7 @@ def parser(Fname, xml=XML):
     fFname = Fname[:-4]
     outFname = '{}-{}.{}'.format(fFname, _DESC, _EOUT)
     Fsplt = outFname.split('/')
-    Out = '{}/{}/{}'.format('/'.join(Fsplt[:-1]), outF, ''.join(Fsplt[-1:]))
+    Out = '{}/{}/{}'.format('/'.join(Fsplt[:-1]), outf, ''.join(Fsplt[-1:]))
     f = open(Out, "w+")
 
     # print(Out)

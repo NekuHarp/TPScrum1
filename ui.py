@@ -21,11 +21,23 @@ parser = Parser(wd, outF)
 
 APP_NAME = 'PDF Parser 1.1'
 
-gl = parser.listDir(wd)
+gl = parser.listDir()
 
 files = []
 
 FCNT = len(gl)
+
+ico_pdf = """<svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="#f3f3f2" d="M4 3v18h12l4-4V3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  <path fill="#f3f3f2" d="M2 5h8v6H2z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  <path fill="#f3f3f2" d="M3 6h6v3H3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  <g fill="#bb2429">
+    <path fill="#a4b1b6" d="M5 4v1h13v10h-4v4H6v-8H5v9h10l4-4V4z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  </g>
+  <path fill="#92999c" d="M10 7v1h5V7h-5zm0 2v1h3V9h-3zm-2 2v1h8v-1H8zm0 2v1h4v-1H8zm0 2v1h5v-1H8z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  <path fill="#c94f53" d="M9 10V6H3v4zM5 8L4 9V7h4v1z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+</svg>
+"""
 
 HTML_code = """
 <!DOCTYPE html>
@@ -48,12 +60,15 @@ HTML_code = """
     .button:focus {outline: none;}
     .button:hover { background: rgba(105, 127, 138, .3); cursor: pointer; transition: .2s all
     ease-in-out; box-shadow: inset 0 0 64px 32px rgba(105, 127, 138, .3); outline:none;}
-    .list { margin: 8px; background: #1E1E21; color: #eee; margin-top: 0; flex-grow: 1;}
+    .list { margin: 8px; background: #1E1E21; color: #eee; margin-top: 0;
+    flex-grow: 1; overflow: visible; overflow-x: hidden; overflow-y: auto;}
     .files { padding: 0; margin: 0; padding-bottom: 8px;}
     .status { margin: 8px 16px; }
     .ico { width: 24px; height:  24px; }
     li.fhead { background:  #2F2F34; display:  flex; }
-    .tb-e { padding:  8px 0; }
+    .tb-e { padding:  8px 0; min-width: 7em; overflow: hidden; text-overflow:
+    ellipsis;}
+    .tb-g { width: 100%;}
     .tb1 {width: 40px; overflow: hidden; text-overflow: ellipsis; padding-left:
     8px; min-width: 40px;}
     input[type="checkbox"]:hover { cursor:  pointer; }
@@ -90,7 +105,7 @@ HTML_code = """
     z-index: 1;}
     .panels-menu li:hover { cursor:  pointer; background: rgba(243, 243, 242,
     .1); transition:  .2s all ease-in-out; }
-    .panels-menu li { transition: .2s all ease-in-out; border-left:  0px; }
+    .panels-menu li { transition: .2s all ease-in-out; border-left:  0px; margin: 0 1rem; border-radius: .3rem;}
     .p0 { flex: 1 0 218px; background: #2F2F34; color: rgba(255,255,255,.8);
     font-size: 1.12em;}
     .p1 { flex: 1 1 800px; }
@@ -101,6 +116,11 @@ HTML_code = """
     .panels-content.active { display: block;}
     .pane-title { font-size: 1.75em; font-weight: bold; line-height:  1;
     margin-bottom: .75em; margin-top:  0; color: #2F2F34; }
+
+    #console { max-height: 8rem; overflow-wrap: normal; overflow-y: auto; padding: 0 8px;}
+    .msg:before { content:  ''; width:  8px; background: rgba(105, 127, 138,
+    .3); display: inline-block; height: 8px; margin-right: 8px; border-radius:
+    8px; }
 
     .checkb { vertical-align: middle; -webkit-appearance: none; display:
     inline-block; position: relative; width: 16px; height: 16px; font-size: inherit;
@@ -135,9 +155,19 @@ HTML_code = """
     ease-in-out; }
     input.input-text:focus { outline:  none; box-shadow: 0 0 0 2px rgba(0,0,0,.2); }
 
+    .btn { height: initial; padding: 0 0.8em; font-size: 1em; line-height: 2em;
+    display: inline-block; margin-bottom: 0; font-weight: normal; text-align:
+    center; vertical-align: middle; border: none; border-radius: 3px;
+    background-color: #f3f4f6; white-space: nowrap; cursor: pointer; z-index: 0;
+    -webkit-user-select: none; width: 7em;}
+    .pane-block.fixed { position:  absolute; right:  3em; bottom:  3em; }
+    .btn-save { font-size:  1.2em; padding: .2em .5em; }
+    .btn-cancel { font-size:  1.2em; padding: .2em .5em; }
+
     .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
     display: block; margin-bottom: .5em;}
-    .panels-menu li.selected{ border-left:  8px solid; border-color: #F3F3F2; }
+    .panels-menu li.selected{ border-left:  4px solid; border-color: #F3F3F2;
+    background: rgba(0,0,0,0.2); border-radius: .3rem; margin: 0 1rem;}
     .reduced {transform: scale(.9) translateZ(0px); }
     .grow {transform: scale(.9) translateZ(0px);opacity: 0; transition: .2s all ease-in-out; }
     .animated { animation: show 0.3s 0.25s ease-in-out 1 forwards; opacity: 0;
@@ -221,12 +251,19 @@ HTML_code = """
     }
 
     function plop(msg) {
+        console = document.getElementById("console");
         console.innerHTML += "<div class=msg>"+msg+"</div>";
-        lol(msg);
+        //lol(msg);
+    }
+
+    function log(msg) {
+        console = document.getElementById("console");
+        console.innerHTML += "<div class=msg>"+msg+"</div>";
     }
 
     function addFile(f) {
-        console.innerHTML += "<div class=msg>"+f+"</div>";
+        //console = document.getElementById("console");
+        //console.innerHTML += "<div class=msg>"+f+"</div>";
         add_file(f);
     }
 
@@ -245,7 +282,7 @@ HTML_code = """
             document.getElementById("XoT").disabled = true;
             parse(js_callback_1, XML);
         } else {
-            alert('None checked');
+            log('Please select at least one file.');
         }
     }
 
@@ -282,6 +319,12 @@ HTML_code = """
         else if (e.keyCode == '191') {
             // /
         }
+    }
+
+    function enable() {
+        document.getElementById("add").disabled = false;
+        document.getElementById("start").disabled = false;
+        document.getElementById("XoT").disabled = false;
     }
 
     window.onload = function(){
@@ -326,12 +369,21 @@ HTML_code += """<div class="left" style="
 </div>
         <div class="list">
             <ul class="files" id="fls">"""
-HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
+HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
 for g in gl:
-    HTML_code += '<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
+    f = ''.join(g.split('/')[-1:])
+    f0 = f.split('_')[0]
+    f1 = f.split('_')[1]
+    f2 = f.split('_')[2]
+    HTML_code += """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
+    <div class="tb-e"><span>{2}</span></div>
+    <div class="tb-e"><span>{3}</span></div>
+    <div class="tb-e tb-g"><span>{1}</span></div>
+    </li>""".format(g, f, f0, f1, f2)
 
 HTML_code += """</ul>
         </div>
+        <div id="console"></div>
     </div>
     <div class="settings">
         <div class="pane p0">
@@ -343,6 +395,47 @@ HTML_code += """</ul>
         </div>
         <div class="pane p1">
             <div class="panels-content active" id="Core">
+                <script>
+                var _path = '{0}';
+                var _out = '{1}';""".format(wd, outF)
+HTML_code += """
+    function reset() {
+        document.querySelector("input[name='path']").value = _path;
+        document.querySelector("input[name='out']").value = _out;
+        refresh(js_callback_1);
+    }
+
+    function save() {
+        var p = document.querySelector("input[name='path']").value;
+        var o = document.querySelector("input[name='out']").value;
+        if(p != _path) {
+            if(o != _out) {
+                set(js_callback_1, p, o);
+                setTimeout(menu, 750);
+                _out = o;
+            } else {
+                set(js_callback_1, p, '');
+                setTimeout(menu, 750);
+            }
+            _path = p;
+            refresh(js_callback_1);
+            enable();
+        } else {
+            if(o != _out) {
+                set(js_callback_1, '', o);
+                setTimeout(menu, 750);
+                _out = o;
+                refresh(js_callback_1);
+                enable();
+            } else {
+                //pass
+            }
+        }
+    }
+
+"""
+
+HTML_code += """</script>
                 <h2 class="pane-title">Core Settings</h2>
                 <div class="pane-block">
                     <span>Change core comportement</span>
@@ -351,6 +444,15 @@ HTML_code += """</ul>
                     <h4 class="small-title">Search path</h4>
                     <span class="muted">Folder where source file are</span>
                     <input class="input-text" name="path" type="text" placeholder="path" maxlength="256" value="{0}">
+                </div>
+                <div class="pane-block">
+                    <h4 class="small-title">Output folder</h4>
+                    <span class="muted">Folder where files will output</span>
+                    <input class="input-text" name="out" type="text" placeholder="path" maxlength="256" value="{1}">
+                </div>
+                <div class="pane-block fixed">
+                    <button class="button btn btn-cancel" onClick="reset();">Cancel</button>
+                    <button class="button btn btn-save" onClick="save();">Save</button>
                 </div>
             </div>
             <div class="panels-content" id="Keys">
@@ -372,10 +474,9 @@ HTML_code += """</ul>
     			   </path></svg>
         </button>
     </div>
-    <div id="console"></div>
 </body>
 </html>
-""".format(wd)
+""".format(wd, outF)
 
 def main():
     check_versions()
@@ -386,6 +487,7 @@ def main():
     #browser.SetIcon("./res/pdf.ico")
     set_client_handlers(browser)
     set_javascript_bindings(browser)
+
     cef.MessageLoop()
     cef.Shutdown()
 
@@ -417,6 +519,10 @@ def set_javascript_bindings(browser):
     bindings.SetFunction("lol", lol)
     bindings.SetFunction("add_file", add_file)
     bindings.SetFunction("parse", _parse)
+    bindings.SetFunction("setWD", setWD)
+    bindings.SetFunction("setOut", setOut)
+    bindings.SetFunction("set", set)
+    bindings.SetFunction("refresh", _refresh)
     bindings.SetObject("external", external)
     browser.SetJavascriptBindings(bindings)
 
@@ -425,6 +531,50 @@ def add_file(f):
         files.append(f)
     else:
         files.remove(f)
+
+def setWD(wd=False):
+    if wd != False:
+        files.clear()
+        return parser.setWD(wd)
+    else:
+        return False
+
+def setOut(outf=False):
+    if outf != False:
+        return parser.setOut(outf)
+    else:
+        return False
+
+def set(js_callback=None, wd='', outf=''):
+    #if js_callback:
+    #    js_print(browser, "Python", "set", "{} {}".format(wd, outf))
+    if wd != '':
+        if not setWD(wd):
+            if js_callback:
+                browser = js_callback.GetFrame().GetBrowser()
+                js_print(browser, "Python", "set", "Invalid path : {}".format(wd))
+        else:
+            if js_callback:
+                _refresh(js_callback)
+    if outf != '':
+        if not setOut(outf):
+            if js_callback:
+                browser = js_callback.GetFrame().GetBrowser()
+                js_print(browser, "Python", "set", "Out folder invalid ({}).".format(outf))
+
+def _refresh(js_callback=None):
+    gl = parser.listDir()
+    files = []
+    print(files)
+    FCNT = len(gl)
+
+    if js_callback:
+        browser = js_callback.GetFrame().GetBrowser()
+        html = '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
+        fls_set(browser, html)
+        for g in gl:
+            html = '<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
+            fls_add(browser, html)
 
 def _parse(js_callback=None, xml=True):
     outF = ""
@@ -440,15 +590,16 @@ def _parse(js_callback=None, xml=True):
                 t = threading.Thread(target=parser.fromTexttoTXT, args=['{}'.format(g), q])
             t.start()
             outF = q.get()
-            html = '<li class="file animated"><div class="tb-e tb1"><span>OK</span></div><div class="tb-e"><span>{}</span></div></li>'.format(''.join(outF.split('/')[-1:]))
+            html = '<li class="file animated"><div class="tb-e tb1">{}</div><div class="tb-e"><span>{}</span></div></li>'.format(ico_pdf, ''.join(outF.split('/')[-1:]))
             # js_print(js_callback.GetFrame().GetBrowser(),
             #          "Parser", "file_load",
             #          "> {}".format(g))
             args = [browser, html]
             threading.Timer(0.5, fls_add, args).start()
 
+
 def lol(str, js_callback=None):
-    subprocess.Popen("gnome-terminal")
+    #subprocess.Popen("gnome-terminal")
     print(str)
 
 def fls_add(browser, html):
