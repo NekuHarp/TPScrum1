@@ -27,6 +27,9 @@ files = []
 
 FCNT = len(gl)
 
+KBINDS = {',': 'Settings', 'Enter': 'Save/Start', 'Esc': 'Exit Settings', 'x': 'Toggle XML mode', 'r': 'Refresh'}
+
+
 ico_pdf = """<svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <path fill="#f3f3f2" d="M4 3v18h12l4-4V3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
   <path fill="#f3f3f2" d="M2 5h8v6H2z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
@@ -96,8 +99,8 @@ HTML_code = """
     -ms-flexbox; display: flex; flex-direction: column; left: 0; position:
     absolute; right: 0; top: 0; background:  #F3F3F2; z-index: -1; transition: .2s all ease-in-out;
     opacity: 0; flex-direction: row; transform: scale(1.2) translateZ(0px);
-    transition: .2s all ease-in-out;}
-    .settings.visible {z-index: 1; animation: pop 0.3s 0s ease-in-out 1 forwards;}
+    transition: .2s all ease-in-out; display: none;}
+    .settings.visible {z-index: 1; animation: pop 0.3s 0s ease-in-out 1 forwards; display: flex;}
     .button.fixed { width:  40px; height:  40px; right: 4px; top: 4px; position:
     absolute; z-index: 99;}
     .settings .pane { -webkit-box-flex: 1; -webkit-box-pack: end; display:
@@ -164,6 +167,12 @@ HTML_code = """
     .btn-save { font-size:  1.2em; padding: .2em .5em; }
     .btn-cancel { font-size:  1.2em; padding: .2em .5em; }
 
+    .khead { border-bottom: 2px solid rgba(0,0,0,0.1); display: flex;
+    font-weight: bold; }
+    .keys { padding: 0; margin: 0; padding-bottom: 8px; }
+    li.key { padding-left: 8px; display: flex; border-bottom: 1px solid rgba(0,0,0,0.1);}
+    li.key:last-child { border: none; }
+
     .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
     display: block; margin-bottom: .5em;}
     .panels-menu li.selected{ border-left:  4px solid; border-color: #F3F3F2;
@@ -198,6 +207,17 @@ HTML_code = """
     var T = true;
 
     document.onkeydown = checkKey;
+
+    function stageAll() {
+        var inp = document.getElementsByClassName("checkb");
+        for (var i = 0; i < inp.length; i++)
+            if (inp[i].type == "checkbox") {
+                if(! inp[i].checked) {
+                    inp[i].checked = true;
+                    addFile(inp[i].value);
+                }
+            }
+    }
 
     function anyChecked() {
         var inp = document.getElementsByClassName("checkb");
@@ -268,7 +288,7 @@ HTML_code = """
     function addFile(f) {
         //console = document.getElementById("console");
         //console.innerHTML += "<div class=msg>"+f+"</div>";
-        add_file(f);
+        switch_file(f);
     }
 
     function XoT() {
@@ -302,14 +322,55 @@ HTML_code = """
         }
         else if (e.keyCode == '83') {
             // s
+            if(T) {
+                if(! document.querySelector(".settings").classList.contains("visible")) {
+                    stageAll();
+                    T = false;
+                    timeout = setTimeout(resetT, 750);
+                }
+            }
+
+        }
+        else if (e.keyCode == '82') {
+            // r
+            if(T) {
+                if(! document.querySelector(".settings").classList.contains("visible")) {
+                    refresh(js_callback_1);
+                    enable();
+                    T = false;
+                    timeout = setTimeout(resetT, 750);
+                }
+            }
+        }
+        else if (e.keyCode == '88') {
+            // x
+            if(T) {
+                if(! document.querySelector(".settings").classList.contains("visible")) {
+                    if(! document.getElementById("XoT").disabled) XoT();
+                    T = false;
+                    timeout = setTimeout(resetT, 750);
+                }
+            }
         }
         else if (e.keyCode == '13') {
+            if(T) {
+                if(document.querySelector(".settings").classList.contains("visible")) {
+                    save();
+                } else {
+                    parseF();
+                }
+                T = false;
+                timeout = setTimeout(resetT, 750);
+            }
             // Enter
         }
         else if (e.keyCode == '32') {
             // Space
         }
         else if (e.keyCode == '27') {
+            if(document.querySelector(".settings").classList.contains("visible")) {
+                menu();
+            }
             // Esc
         }
         else if (e.keyCode == '188') {
@@ -326,6 +387,8 @@ HTML_code = """
     }
 
     function enable() {
+        document.querySelector("input[name='path']").blur();
+        document.querySelector("input[name='out']").blur();
         document.getElementById("add").disabled = false;
         document.getElementById("start").disabled = false;
         document.getElementById("XoT").disabled = false;
@@ -395,6 +458,7 @@ HTML_code += """</ul>
             <ul class="panels-menu">
                 <li class="lCore selected"><a class="icon ico-c" onclick="setPane('Core');">Core</a></li>
                 <li class="lKeys"><a class="icon ico-k" onclick="setPane('Keys');">Keybind</a></li>
+                <li class="lStruc"><a class="icon ico-s" onclick="setPane('Struc');">Structures</a></li>
                 <li class="lAbout"><a class="icon ico-a" onclick="setPane('About');">About</a></li>
             </ul>
         </div>
@@ -463,7 +527,20 @@ HTML_code += """</script>
             <div class="panels-content" id="Keys">
                 <h2 class="pane-title">Keybind</h2>
                 <div class="pane-block">
-                    <span>TODO: Keys</span>
+                    <ul class="keys"><li class="khead"><div class="tb-e"><span>Key</span></div><div class="tb-e tb-g"><span>Action</span></div></li>""".format(wd, outF)
+for i in KBINDS:
+    HTML_code += """<li class="key">
+                            <div class="tb-e"><span>{0}</span></div>
+                            <div class="tb-e tb-g"><span>{1}</span></div>
+                        </li>""".format(i, KBINDS[i])
+HTML_code += """</ul>
+                </div>
+            </div>
+            <div class="panels-content" id="Struc">
+                <h2 class="pane-title">Structures</h2>
+                <div class="pane-block">
+                    <span>TODO: Struc</span>
+                    <span>(XML show/hide, TXT format)</span>
                 </div>
             </div>
             <div class="panels-content" id="About">
@@ -481,7 +558,7 @@ HTML_code += """</script>
     </div>
 </body>
 </html>
-""".format(wd, outF)
+"""
 
 def main():
     check_versions()
@@ -523,6 +600,8 @@ def set_javascript_bindings(browser):
     bindings.SetFunction("html_to_data_uri", html_to_data_uri)
     bindings.SetFunction("lol", lol)
     bindings.SetFunction("add_file", add_file)
+    bindings.SetFunction("switch_file", switch_file)
+    bindings.SetFunction("remove_file", remove_file)
     bindings.SetFunction("parse", _parse)
     bindings.SetFunction("setWD", setWD)
     bindings.SetFunction("setOut", setOut)
@@ -534,8 +613,19 @@ def set_javascript_bindings(browser):
 def add_file(f):
     if f not in files:
         files.append(f)
+
+def switch_file(f):
+    if f not in files:
+        files.append(f)
     else:
         files.remove(f)
+
+def remove_file(f):
+    if f in files:
+        files.remove(f)
+
+def clear_files():
+    files.clear()
 
 def setWD(wd=False):
     if wd != False:
@@ -569,8 +659,9 @@ def set(js_callback=None, wd='', outf=''):
 
 def _refresh(js_callback=None):
     gl = parser.listDir()
-    files = []
     FCNT = len(gl)
+
+    clear_files()
 
     if js_callback:
         browser = js_callback.GetFrame().GetBrowser()
@@ -583,15 +674,23 @@ def _refresh(js_callback=None):
             f0 = _f[0] if len(_f)>0 else ''
             f1 = _f[1] if len(_f)>1 else ''
             f2 = _f[2] if len(_f)>2 else ''
-            html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
-            <div class="tb-e"><span>{2}</span></div>
-            <div class="tb-e"><span>{3}</span></div>
-            <div class="tb-e tb-g"><span>{1}</span></div>
-            </li>""".format(g, f, f0, f1, f2)
+            if g in files:
+                html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')" checked></div>
+                <div class="tb-e"><span>{2}</span></div>
+                <div class="tb-e"><span>{3}</span></div>
+                <div class="tb-e tb-g"><span>{1}</span></div>
+                </li>""".format(g, f, f0, f1, f2)
+            else:
+                html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
+                <div class="tb-e"><span>{2}</span></div>
+                <div class="tb-e"><span>{3}</span></div>
+                <div class="tb-e tb-g"><span>{1}</span></div>
+                </li>""".format(g, f, f0, f1, f2)
             fls_add(browser, html)
 
 def _parse(js_callback=None, xml=True):
     outF = ""
+
     if js_callback:
         html = '<li class="fhead"><div class="tb-e tb1"><span>Status</span></div><div class="tb-e"><span>Name</span></div></li>'
         browser = js_callback.GetFrame().GetBrowser()
@@ -610,7 +709,6 @@ def _parse(js_callback=None, xml=True):
             #          "> {}".format(g))
             args = [browser, html]
             threading.Timer(0.5, fls_add, args).start()
-
 
 def lol(str, js_callback=None):
     #subprocess.Popen("gnome-terminal")
