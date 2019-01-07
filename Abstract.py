@@ -47,6 +47,8 @@ REFS = ['References', 'REFERENCES']
 CONCL = ['Conclusion', 'Conclusions', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
 INTR = ['Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
 
+CORPS = ['2.','2','II.']
+
 _MAX_LEN = 80
 
 _ASCII_TEXT = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '
@@ -70,11 +72,15 @@ class Parser:
         if not os.path.exists(self.outD):
             os.makedirs(self.outD)
 
-    def parseDir(self, wd):
+    def listDir(self, wd=''):
+        if wd == '':
+            wd = self.wd
         if os.path.exists(wd):
-            gl = glob.glob('{}/*.{}'.format(wd, _EXT))
-            for g in gl:
-                parseFile(g)
+            gl = glob.glob('{}/*.{}'.format(wd, "pdf"))
+            gl = [g.replace('\\','/') for g in gl]
+            return gl
+        else:
+            return []
 
     def fromTexttoXML(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
@@ -116,35 +122,14 @@ class Parser:
         if q!='': q.put(r)
         return r
 
-    """gl = glob.glob('{}/*.{}'.format(wd, _EXT))
-    outD = '{}/{}'.format(wd, outF)
-
-    print('[100m {} [49m\n'.format(APP_NAME))
-    COUNT = len(gl)
-    pos = 0
-    gl = [g.replace('\\','/') for g in gl]
-
-    if not os.path.exists(outD):
-        os.makedirs(outD)
-        progress(pos, COUNT, _COUNT_SZ)
-        status('{}'.format(HELP_MSG[0]))
-    for g in gl:
-        pos += 1
-        progress(pos, COUNT, _COUNT_SZ)
-        fnam = os.path.basename(g)
-        if len(fnam)+4>_MAX_LEN: fnam = fnam[:(_MAX_LEN-4-3)]+"..."
-        else: fnam += ' '*(_MAX_LEN-4-len(fnam))
-        status(' > {}'.format(fnam))
-
-        Fname = '{}.{}'.format(g[:-4], _TXT)
-        p = subprocess.Popen([_APP , g , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
-        p.wait()
-        parser(Fname)
-    print('\n'+HELP_MSG[3])"""
-
-
-
-
+    def parseDir(self, wd, xml=True):
+        if os.path.exists(wd):
+            gl = glob.glob('{}/*.{}'.format(wd, _EXT))
+            for g in gl:
+                if(xml):
+                    self.fromPDFtoXML(g)
+                else:
+                    self.fromTexttoXML(g)
 
 
 def progress(pos, total, sz):
@@ -171,6 +156,7 @@ def parser(Fname, xml=XML):
     inT = True
     inR = False
     inK = False
+    inC = True
 
     if(xml):
         XML = True
@@ -187,6 +173,8 @@ def parser(Fname, xml=XML):
     rfregex = "References\n"
     uregex = "www.*.*"
     vregex = "(VOL[.|UME.]*)(( \d*))*"
+
+    endIntroReg = "(2|II)(\.| |)( |)(\w+|)\n" #TODO : end intro with this
 
     kireg = "^((Keywords:)|(Index Terms[—]*))"
 
@@ -292,20 +280,23 @@ def parser(Fname, xml=XML):
             inB = 0
         if st in REFS:
             inB = 'r'
-            inBC = 2
+            inBC = 12
             continue
         if s in ACK:
             inB = 'a'
-            inBC = 2
+            inBC = 12
             continue
         if st in DISC:
             inB = 'd'
             inBC = 4
             # print l, st
             continue
+        if True in [l.startswith(i) for i in CORPS]:
+            inBC = 0
+            inC = True
         if st in INTR:
             inB = 'i'
-            inBC = 2
+            inBC = 16
             continue
         if st in CONCL:
             inB = 'c'

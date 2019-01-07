@@ -18,9 +18,8 @@ parser = Parser()
 
 APP_NAME = 'PDF Parser 1.1'
 
-wd = "./dossier/"
-gl = glob.glob('{}/*.{}'.format(wd, "pdf"))
-gl = [g.replace('\\','/') for g in gl]
+wd=''
+gl = parser.listDir(wd)
 
 files = []
 
@@ -31,7 +30,7 @@ HTML_code = """
 <html>
 <head>
     <style type="text/css">
-    .window { background: #F3F3F2; height: 100%; display: flex; flex-direction: column;}
+    .window { background: #F3F3F2; height: 100%; display: flex; flex-direction: column; transition: .2s all ease-in-out;}
     body { margin: 0; background: #F3F3F2; height: 100%;}
     .toolbar{ display: -webkit-flex; display: -ms-flexbox; display: flex;
     -webkit-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap;
@@ -62,7 +61,7 @@ HTML_code = """
     button:disabled:hover, button[disabled]:hover { box-shadow: inset 0 0 0 1px
     #697F8A; background: inherit; cursor: default; }
     button:disabled, button[disabled] { opacity:  .5; }
-    body,html { font-family: Arial; font-size: 11pt; height: 100%;}
+    body,html { font-family: Arial; font-size: 11pt; height: 100%; overflow: hidden;}
     div.msg { margin: 0.2em; line-height: 1.4em; }
     #XoT.act { box-shadow: inset 0 0 0 2px #C94F53; }
     #XoT.act .b-red{ fill: #C94F53 !important; }
@@ -74,6 +73,39 @@ HTML_code = """
     b.Python { background: #eee; }
     i { font-family: Courier new; font-size: 10pt; border: #eee 1px solid;
         padding: 0.1em 0.2em; }
+    .left { float: right; margin-left: auto; margin-right: 4px; }
+    .reduced .left { opacity:  0; }
+    .settings { -ms-flex-direction: column; -webkit-box-direction: normal;
+    -webkit-box-orient: vertical; bottom: 0; display: -webkit-box; display:
+    -ms-flexbox; display: flex; flex-direction: column; left: 0; position:
+    absolute; right: 0; top: 0; background:  #F3F3F2; z-index: -1; transition: .2s all ease-in-out;
+    opacity: 0; flex-direction: row; transform: scale(1.2) translateZ(0px);
+    transition: .2s all ease-in-out;}
+    .settings.visible {z-index: 1; animation: pop 0.3s 0s ease-in-out 1 forwards;}
+    .button.fixed { width:  40px; height:  40px; right: 4px; top: 4px; position:
+    absolute; z-index: 99;}
+    .settings .pane { -webkit-box-flex: 1; -webkit-box-pack: end; display:
+    -webkit-box; display: -ms-flexbox; display: flex; justify-content: flex-end;
+    z-index: 1;}
+    .panels-menu li:hover { cursor:  pointer; background: rgba(243, 243, 242,
+    .1); transition:  .2s all ease-in-out; }
+    .panels-menu li { transition: .2s all ease-in-out; border-left:  0px; }
+    .p0 { flex: 1 0 218px; background: #2F2F34; color: rgba(255,255,255,.8);
+    font-size: 1.12em;}
+    .p1 { flex: 1 1 800px; }
+    ul.panels-menu { margin-bottom: 0; padding-left: 0; list-style: none;
+    position: relative; min-width: 15em; max-width: 20em; margin-top: 3em;}
+    .panels-content { margin-top: 3em; padding: 0px 40px; width: 100%; color:
+    #5E6063; display: none;}
+    .panels-content.active { display: block;}
+    .pane-title { font-size: 1.75em; font-weight: bold; line-height:  1;
+    margin-bottom: .75em; margin-top:  0; color: #2F2F34; }
+
+    .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
+    display: block; margin-bottom: .5em;}
+    .panels-menu li.selected{ border-left:  8px solid; border-color: #F3F3F2; }
+    .reduced {transform: scale(.9) translateZ(0px); }
+    .grow {transform: scale(.9) translateZ(0px);opacity: 0; transition: .2s all ease-in-out; }
     .animated { animation: show 0.3s 0.25s ease-in-out 1 forwards; opacity: 0;
     transform: translate(7%, 0); transition: height 2s ease-in-out; overflow: hidden; max-width: 90%;}
     .animated:nth-child(1) {animation-delay: .2s;}
@@ -89,13 +121,10 @@ HTML_code = """
     .animated:nth-child(11) {animation-delay: 1.2s;}
     .animated:nth-child(12) {animation-delay: 1.3s;}
     .animated:nth-child(13) {animation-delay: 1.4s;}
-    @keyframes show {
-        100% {
-            opacity: 1;
-            transform: translate(0,0);
-            max-width: 100%;
-        }
-    }
+    @keyframes show { 100% { opacity: 1; transform: translate(0,0); max-width:
+    100%; } }
+    @keyframes pop { 100% { opacity: 1; transform: scale(1) translateZ(0px); max-width:
+    100%; } }
 
     </style>
 
@@ -133,6 +162,23 @@ HTML_code = """
     function js_callback_2(msg, py_callback) {
         js_print("Javascript", "js_callback", msg);
         py_callback("String sent from Javascript");
+    }
+
+    function setPane(pane) {
+        document.querySelector(".selected").classList.remove("selected");
+        document.querySelector(".l"+pane).classList.add("selected");
+        document.querySelector(".active").classList.remove("active");
+        document.querySelector("#"+pane).classList.add("active");
+    }
+
+    function menu() {
+        if(document.querySelector(".window").classList.contains('reduced')) {
+            //open
+            document.querySelector(".settings").classList.remove("visible");
+        } else {
+            document.querySelector(".settings").classList.add("visible");
+        }
+        document.querySelector(".window").classList.toggle('reduced');
     }
 
     function plop(msg) {
@@ -195,7 +241,15 @@ HTML_code = """
             </button>
             <div class="sep"></div>"""
 HTML_code += '<h1 class="big">{0} Items</h1>'.format(FCNT)
-HTML_code += """</div>
+HTML_code += """<div class="left" style="
+">
+<button class="button" onclick="menu()">
+    <svg class="ico" id="bham" viewBox="0 0 24 24"><path id="mon" fill="#303f46" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z">
+			   </svg>
+    </button>
+    </div>
+
+</div>
         <div class="list">
             <ul class="files" id="fls">"""
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
@@ -204,6 +258,33 @@ for g in gl:
 
 HTML_code += """</ul>
         </div>
+    </div>
+    <div class="settings">
+        <div class="pane p0">
+            <ul class="panels-menu">
+                <li class="lCore selected"><a class="icon ico-c" onclick="setPane('Core');">Core</a></li>
+                <li class="lAbout"><a class="icon ico-a" onclick="setPane('About');">About</a></li>
+            </ul>
+        </div>
+        <div class="pane p1">
+            <div class="panels-content active" id="Core">
+                <h2 class="pane-title">Core Settings</h2>
+                <div class="pane-block">
+                    <span>Change core comportement</span>
+                </div>
+            </div>
+            <div class="panels-content" id="About">
+                <h2 class="pane-title">About</h2>
+                <div class="pane-block">
+                    <span>TODO: About</span>
+                </div>
+            </div>
+        </div>
+
+        <button class="button fixed" onclick="menu()">
+        <svg class="ico" id="bham" viewBox="0 0 24 24"><path id="mon" fill="#303f46" <path d="M6.3 5L5 6.2l5.7 5.7-5.7 5.7L6.3 19l5.7-5.7 5.7 5.7 1.4-1.4-5.7-5.7 5.7-5.7L17.7 5 12 10.6 6.3 4.9z"/>>
+    			   </path></svg>
+        </button>
     </div>
     <div id="console"></div>
 </body>
@@ -281,7 +362,7 @@ def _parse(js_callback=None, xml=True):
             threading.Timer(0.5, fls_add, args).start()
 
 def lol(str, js_callback=None):
-    subprocess.Popen("notepad.exe")
+    subprocess.Popen("gnome-terminal")
     print(str)
 
 def fls_add(browser, html):
