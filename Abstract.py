@@ -78,12 +78,24 @@ class Parser:
 
     def fromTexttoXML(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
+        if not os.path.isfile(Fname):
+            if not os.path.isfile(fname):
+                return False
+            else:
+                p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+                p.wait()
         r = parser(Fname, xml=True)
         if q!='': q.put(r)
         return r
 
     def fromTexttoTXT(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
+        if not os.path.isfile(Fname):
+            if not os.path.isfile(fname):
+                return False
+            else:
+                p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
+                p.wait()
         r = parser(Fname, xml=False)
         if q!='': q.put(r)
         return r
