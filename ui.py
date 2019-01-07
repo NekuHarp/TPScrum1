@@ -240,6 +240,10 @@ HTML_code = """
         document.querySelector("#"+pane).classList.add("active");
     }
 
+    function setCount(cnt) {
+        document.querySelector("#fcount").innerHTML = cnt+' Items';
+    }
+
     function menu() {
         if(document.querySelector(".window").classList.contains('reduced')) {
             //open
@@ -357,7 +361,7 @@ HTML_code = """
                 </svg>
             </button>
             <div class="sep"></div>"""
-HTML_code += '<h1 class="big">{0} Items</h1>'.format(FCNT)
+HTML_code += '<h1 class="big" id="fcount">{0} Items</h1>'.format(FCNT)
 HTML_code += """<div class="left" style="
 ">
 <button class="button" onclick="menu()">
@@ -372,9 +376,10 @@ HTML_code += """<div class="left" style="
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
 for g in gl:
     f = ''.join(g.split('/')[-1:])
-    f0 = f.split('_')[0]
-    f1 = f.split('_')[1]
-    f2 = f.split('_')[2]
+    _f = f.split('_')
+    f0 = _f[0] if len(_f)>0 else ''
+    f1 = _f[1] if len(_f)>1 else ''
+    f2 = _f[2] if len(_f)>2 else ''
     HTML_code += """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
     <div class="tb-e"><span>{2}</span></div>
     <div class="tb-e"><span>{3}</span></div>
@@ -565,15 +570,24 @@ def set(js_callback=None, wd='', outf=''):
 def _refresh(js_callback=None):
     gl = parser.listDir()
     files = []
-    print(files)
     FCNT = len(gl)
 
     if js_callback:
         browser = js_callback.GetFrame().GetBrowser()
-        html = '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Name</span></div></li>'
+        file_count(browser, FCNT)
+        html = '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
         fls_set(browser, html)
         for g in gl:
-            html = '<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile(\'{0}\')"></div><div class="tb-e"><span>{1}<br></span></div></li>'.format(g, ''.join(g.split('/')[-1:]))
+            f = ''.join(g.split('/')[-1:])
+            _f = f.split('_')
+            f0 = _f[0] if len(_f)>0 else ''
+            f1 = _f[1] if len(_f)>1 else ''
+            f2 = _f[2] if len(_f)>2 else ''
+            html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
+            <div class="tb-e"><span>{2}</span></div>
+            <div class="tb-e"><span>{3}</span></div>
+            <div class="tb-e tb-g"><span>{1}</span></div>
+            </li>""".format(g, f, f0, f1, f2)
             fls_add(browser, html)
 
 def _parse(js_callback=None, xml=True):
@@ -607,6 +621,9 @@ def fls_add(browser, html):
 
 def fls_set(browser, html):
     browser.ExecuteFunction("flsSet", html);
+
+def file_count(browser, val):
+    browser.ExecuteFunction("setCount", val);
 
 def js_print(browser, lang, event, msg):
     # Execute Javascript function "js_print"
