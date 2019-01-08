@@ -27,7 +27,7 @@ files = []
 
 FCNT = len(gl)
 
-KBINDS = {',': 'Settings', 'Enter': 'Save/Start', 'Esc': 'Exit Settings', 'x': 'Toggle XML mode', 'r': 'Refresh'}
+KBINDS = {',': 'Settings', 'Enter': 'Save/Start', 'Esc': 'Exit Settings', 'x': 'Toggle XML mode', 'r': 'Refresh', 's': 'Select all files / > Structures', 'c': '> Core', 'k': '> Keybind', 'a': '> About'}
 
 
 ico_pdf = """<svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -327,6 +327,10 @@ HTML_code = """
                     stageAll();
                     T = false;
                     timeout = setTimeout(resetT, 750);
+                } else {
+                    setPane('Struc');
+                    T = false;
+                    timeout = setTimeout(resetT, 300);
                 }
             }
 
@@ -366,6 +370,39 @@ HTML_code = """
         }
         else if (e.keyCode == '32') {
             // Space
+        }
+        else if (e.keyCode == '67') {
+            // c
+            if(T) {
+                if(document.querySelector(".settings").classList.contains("visible")) {
+                    setPane('Core');
+                    T = false;
+                    timeout = setTimeout(resetT, 300);
+                }
+            }
+        }
+        else if (e.keyCode == '75') {
+            // k
+            if(T) {
+                if(document.querySelector(".settings").classList.contains("visible")) {
+                    setPane('Keys');
+                    T = false;
+                    timeout = setTimeout(resetT, 300);
+                }
+            }
+        }
+        else if (e.keyCode == '65') {
+            // a
+            if(T) {
+                if(document.querySelector(".settings").classList.contains("visible")) {
+                    setPane('About');
+                    T = false;
+                    timeout = setTimeout(resetT, 300);
+                }
+            }
+        }
+        else if (e.keyCode == '84') {
+            // t
         }
         else if (e.keyCode == '27') {
             if(document.querySelector(".settings").classList.contains("visible")) {
