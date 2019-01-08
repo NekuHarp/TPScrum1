@@ -166,6 +166,8 @@ HTML_code = """
     .pane-block.fixed { position:  absolute; right:  3em; bottom:  3em; }
     .btn-save { font-size:  1.2em; padding: .2em .5em; }
     .btn-cancel { font-size:  1.2em; padding: .2em .5em; }
+    .btn:active, .btn:focus { box-shadow: inset 0 0 0 1px #697F8A, 0 0 0 2px
+    rgba(0,0,0,.2); }
 
     .khead { border-bottom: 2px solid rgba(0,0,0,0.1); display: flex;
     font-weight: bold; }
@@ -316,110 +318,116 @@ HTML_code = """
 
     function checkKey(e) {
         e = e || window.event;
+        if(document.activeElement.tagName == "INPUT") {
+            if (e.keyCode == '27') {
+                document.activeElement.blur();
+            }
+        } else if (document.activeElement.tagName == "BODY") {
+            if (e.keyCode == '38') {
+                // up arrow
+            }
+            else if (e.keyCode == '83') {
+                // s
+                if(T) {
+                    if(! document.querySelector(".settings").classList.contains("visible")) {
+                        stageAll();
+                        T = false;
+                        timeout = setTimeout(resetT, 750);
+                    } else {
+                        setPane('Struc');
+                        T = false;
+                        timeout = setTimeout(resetT, 300);
+                    }
+                }
 
-        if (e.keyCode == '38') {
-            // up arrow
-        }
-        else if (e.keyCode == '83') {
-            // s
-            if(T) {
-                if(! document.querySelector(".settings").classList.contains("visible")) {
-                    stageAll();
+            }
+            else if (e.keyCode == '82') {
+                // r
+                if(T) {
+                    if(! document.querySelector(".settings").classList.contains("visible")) {
+                        refresh(js_callback_1);
+                        enable();
+                        T = false;
+                        timeout = setTimeout(resetT, 750);
+                    }
+                }
+            }
+            else if (e.keyCode == '88') {
+                // x
+                if(T) {
+                    if(! document.querySelector(".settings").classList.contains("visible")) {
+                        if(! document.getElementById("XoT").disabled) XoT();
+                        T = false;
+                        timeout = setTimeout(resetT, 750);
+                    }
+                }
+            }
+            else if (e.keyCode == '13') {
+                if(T) {
+                    if(document.querySelector(".settings").classList.contains("visible")) {
+                        save();
+                    } else {
+                        parseF();
+                    }
                     T = false;
                     timeout = setTimeout(resetT, 750);
-                } else {
-                    setPane('Struc');
-                    T = false;
-                    timeout = setTimeout(resetT, 300);
                 }
+                // Enter
+            }
+            else if (e.keyCode == '32') {
+                // Space
+            }
+            else if (e.keyCode == '67') {
+                // c
+                if(T) {
+                    if(document.querySelector(".settings").classList.contains("visible")) {
+                        setPane('Core');
+                        T = false;
+                        timeout = setTimeout(resetT, 300);
+                    }
+                }
+            }
+            else if (e.keyCode == '75') {
+                // k
+                if(T) {
+                    if(document.querySelector(".settings").classList.contains("visible")) {
+                        setPane('Keys');
+                        T = false;
+                        timeout = setTimeout(resetT, 300);
+                    }
+                }
+            }
+            else if (e.keyCode == '65') {
+                // a
+                if(T) {
+                    if(document.querySelector(".settings").classList.contains("visible")) {
+                        setPane('About');
+                        T = false;
+                        timeout = setTimeout(resetT, 300);
+                    }
+                }
+            }
+            else if (e.keyCode == '84') {
+                // t
+            }
+            else if (e.keyCode == '27') {
+                if(document.querySelector(".settings").classList.contains("visible")) {
+                    menu();
+                }
+                // Esc
+            }
+            else if (e.keyCode == '188') {
+                if(T) {
+                    menu();
+                    T = false;
+                    timeout = setTimeout(resetT, 750)
+                }
+                // ,
+            }
+            else if (e.keyCode == '191') {
+                // /
             }
 
-        }
-        else if (e.keyCode == '82') {
-            // r
-            if(T) {
-                if(! document.querySelector(".settings").classList.contains("visible")) {
-                    refresh(js_callback_1);
-                    enable();
-                    T = false;
-                    timeout = setTimeout(resetT, 750);
-                }
-            }
-        }
-        else if (e.keyCode == '88') {
-            // x
-            if(T) {
-                if(! document.querySelector(".settings").classList.contains("visible")) {
-                    if(! document.getElementById("XoT").disabled) XoT();
-                    T = false;
-                    timeout = setTimeout(resetT, 750);
-                }
-            }
-        }
-        else if (e.keyCode == '13') {
-            if(T) {
-                if(document.querySelector(".settings").classList.contains("visible")) {
-                    save();
-                } else {
-                    parseF();
-                }
-                T = false;
-                timeout = setTimeout(resetT, 750);
-            }
-            // Enter
-        }
-        else if (e.keyCode == '32') {
-            // Space
-        }
-        else if (e.keyCode == '67') {
-            // c
-            if(T) {
-                if(document.querySelector(".settings").classList.contains("visible")) {
-                    setPane('Core');
-                    T = false;
-                    timeout = setTimeout(resetT, 300);
-                }
-            }
-        }
-        else if (e.keyCode == '75') {
-            // k
-            if(T) {
-                if(document.querySelector(".settings").classList.contains("visible")) {
-                    setPane('Keys');
-                    T = false;
-                    timeout = setTimeout(resetT, 300);
-                }
-            }
-        }
-        else if (e.keyCode == '65') {
-            // a
-            if(T) {
-                if(document.querySelector(".settings").classList.contains("visible")) {
-                    setPane('About');
-                    T = false;
-                    timeout = setTimeout(resetT, 300);
-                }
-            }
-        }
-        else if (e.keyCode == '84') {
-            // t
-        }
-        else if (e.keyCode == '27') {
-            if(document.querySelector(".settings").classList.contains("visible")) {
-                menu();
-            }
-            // Esc
-        }
-        else if (e.keyCode == '188') {
-            if(T) {
-                menu();
-                T = false;
-                timeout = setTimeout(resetT, 750)
-            }
-            // ,
-        }
-        else if (e.keyCode == '191') {
-            // /
         }
     }
 
