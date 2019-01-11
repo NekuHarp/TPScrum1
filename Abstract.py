@@ -46,7 +46,7 @@ IGNORE_ME = ['in', 'and', 'for']
 DISC = ['Discussion']
 ACK = ['Acknowledgements', 'ACKNOWLEDGMENT', 'Acknowledgments']
 REFS = ['References', 'REFERENCES']
-CONCL = ['Conclusion', 'Conclusions', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
+CONCL = ['Conclusion', 'Conclusions', ' Conclusions and future work', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
 INTR = ['Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
 
 CORPS = ['2.','2','II.']
@@ -317,7 +317,7 @@ def parser(Fname, xml=XML, outf=outF):
             continue
         if st in DISC:
             inB = 'd'
-            inBC = 4
+            inBC = 8
             # print l, st
             continue
         if True in [l.startswith(i) for i in CORPS]:
