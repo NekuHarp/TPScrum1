@@ -44,7 +44,7 @@ REMOV_TITLE = [',', 'and', 'a,*,', 'a,', 'b,1', 'of']
 IGNORE_ME = ['in', 'and', 'for']
 
 DISC = ['Discussion']
-ACK = ['Acknowledgements', 'ACKNOWLEDGMENT']
+ACK = ['Acknowledgements', 'ACKNOWLEDGMENT', 'Acknowledgments']
 REFS = ['References', 'REFERENCES']
 CONCL = ['Conclusion', 'Conclusions', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
 INTR = ['Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
@@ -346,8 +346,12 @@ def parser(Fname, xml=XML, outf=outF):
                 nt += l
                 nt += " "
             elif inB == 'c':
-                cn += l
-                cn += " "
+                if l == 'Acknowledgments':
+                    inBC = 0
+                    continue
+                else:
+                    cn += l
+                    cn += " "
             else:
                 pass
                 #pass
