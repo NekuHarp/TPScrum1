@@ -20,6 +20,9 @@ parser = Parser(wd, outF)
 # parser.fromPDFtoTXT('./dossier/Lin_2004_Rouge.pdf')
 
 APP_NAME = 'PDF Parser 1.1'
+VERSION = '1.0.1 d'
+
+TEAM = ['GRANIER Jean-Clair', 'BOUCHET Lucas', 'BARRIOL Rémy', 'WATTIN Tristan', 'MALEPLATE Bastien']
 
 gl = parser.listDir()
 
@@ -46,6 +49,7 @@ HTML_code = """
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <style type="text/css">
     .window { background: #F3F3F2; height: 100%; display: flex; flex-direction: column; transition: .2s all ease-in-out;}
     body { margin: 0; background: #F3F3F2; height: 100%;}
@@ -149,7 +153,7 @@ HTML_code = """
     input[type="checkbox"]:active, input[type="checkbox"]:focus { outline:  none; }
 
     h4.small-title { margin-bottom: .25rem; font-size: 1.2em; }
-    span.muted { opacity:  .8; }
+    span.muted { opacity:  .8; display: block;}
     input.input-text { border: none; background-color: rgba(0,0,0,.1); border-color:
     rgba(0,0,0,.3); height: 32px; padding: 10px; -webkit-box-sizing: border-box;
     -webkit-transition: background-color .15s ease,border .15s ease; border-radius:
@@ -174,6 +178,20 @@ HTML_code = """
     .keys { padding: 0; margin: 0; padding-bottom: 8px; }
     li.key { padding-left: 8px; display: flex; border-bottom: 1px solid rgba(0,0,0,0.1);}
     li.key:last-child { border: none; }
+
+    span.about-title { font-size: 3rem; font-weight: 600; line-height: 4rem;
+    margin-bottom: .75em; margin-top: 0; color: #2F2F34; display: flex;
+    text-align:  center; margin:  0 auto; margin-left:  auto; width:
+    fit-content; eight: 4rem; transition: .2s all ease-in-out; transform:
+    scale3d(1, 1, 1); }
+    .about-title .ico { width: 4rem; height: 4rem; }
+    span.about-version { text-align: center; width: 100%; margin:  0 auto;
+    margin-bottom: .25rem; font-size: 1.6rem; font-weight: 200; display: flex;
+    flex-grow:  1; flex-direction: column-reverse; }
+    span.about-title:hover { transform: scale3d(1.1, 1.1, 1.1); transition:  .2s
+    all ease-in-out; text-shadow: 2px 2px 0px #F3F3F2, 4px 4px 2px rgba(164,
+    177, 182, 0.6); }
+
 
     .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
     display: block; margin-bottom: .5em;}
@@ -587,12 +605,38 @@ HTML_code += """</ul>
                     <span>TODO: Struc</span>
                     <span>(XML show/hide, TXT format)</span>
                 </div>
-            </div>
+            </div>"""
+HTML_code += """
             <div class="panels-content" id="About">
-                <h2 class="pane-title">About</h2>
+                <span class="about-title">
+                    <svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                      <path fill="#f3f3f2" d="M4 3v18h12l4-4V3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+                      <path fill="#f3f3f2" d="M2 5h8v6H2z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+                      <path fill="#f3f3f2" d="M3 6h6v3H3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+                      <g fill="#bb2429">
+                        <path fill="#a4b1b6" d="M5 4v1h13v10h-4v4H6v-8H5v9h10l4-4V4z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+                      </g>
+                      <path fill="#92999c" d="M10 7v1h5V7h-5zm0 2v1h3V9h-3zm-2 2v1h8v-1H8zm0 2v1h4v-1H8zm0 2v1h5v-1H8z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+                      <path fill="#c94f53" d="M9 10V6H3v4zM5 8L4 9V7h4v1z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+                    </svg>
+                PDF Parser</span>
+
                 <div class="pane-block">
-                    <span>TODO: About</span>
+                    <span class="about-version">{}</span>
                 </div>
+                <div class="pane-block">
+                    <h4 class="small-title">Used libraries</h4>
+                    <span class="muted">Python {}</span>
+                    <span class="muted">Chrome {}</span>
+                    <span class="muted">CEF {}</span>
+                </div>
+                <div class="pane-block">
+                    <h4 class="small-title">Team</h4>""".format(VERSION,'.'.join(['{}'.format(i) for i in sys.version_info]), cef.GetVersion()['chrome_version'], cef.GetVersion()['cef_version'])
+
+for i in TEAM:
+    HTML_code +=  """<span class="muted">{}</span>""".format(i)
+                    #<span class="muted">{}</span>
+HTML_code += """</div>
             </div>
         </div>
 
