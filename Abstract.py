@@ -178,6 +178,7 @@ def parser(Fname, xml=XML, outf=outF):
     inR = False
     inK = False
     inC = True
+    inI = False
 
     if(xml):
         XML = True
@@ -297,6 +298,13 @@ def parser(Fname, xml=XML, outf=outF):
             refs += " "
         if re.search(rregex, line, re.IGNORECASE) or (len(line)>len(rfregex) and line[1:]==rfregex):
             inR = True
+        if inI:
+            if re.search(endIntroReg, line):
+                inI = False
+                continue
+            else:
+                nt += l
+                l += " "
         if inBC == 0 and inB != 0:
             inB = 0
         if st in REFS:
@@ -316,12 +324,13 @@ def parser(Fname, xml=XML, outf=outF):
             inBC = 0
             inC = True
         if st in INTR:
+            inI = True
             inB = 'i'
-            inBC = 16
+            inBC = -1
             continue
         if st in CONCL:
             inB = 'c'
-            inBC = 2
+            inBC = 16
             continue
         if inB != 0 and inBC != 0:
             if inB == 'r':
