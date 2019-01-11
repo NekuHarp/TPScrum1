@@ -7,6 +7,8 @@ import subprocess
 import argparse
 import time
 
+TEST = 1
+
 APP_NAME = 'PDF Parser 1.1'
 HELP_MSG = ['Creating output folder . . .','','','Tasks complete !']
 
