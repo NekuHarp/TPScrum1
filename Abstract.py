@@ -317,6 +317,7 @@ def parser(Fname, xml=XML, outf=outF):
         if inBC == 0 and inB != 0:
             inB = 0
         if st in REFS:
+            inCo = False
             inB = 'r'
             inBC = 12
             continue
@@ -325,6 +326,7 @@ def parser(Fname, xml=XML, outf=outF):
             inBC = 12
             continue
         if st in DISC:
+            inCo = False
             inB = 'd'
             inBC = 8
             # print l, st
@@ -338,6 +340,7 @@ def parser(Fname, xml=XML, outf=outF):
             inBC = -1
             continue
         if st in CONCL:
+            inCo = False
             inB = 'c'
             inBC = 16
             continue
@@ -352,8 +355,9 @@ def parser(Fname, xml=XML, outf=outF):
                 ds += l
                 ds += " "
             elif inB == 'i':
-                nt += l
-                nt += " "
+                #nt += l
+                #nt += " "
+                pass
             elif inB == 'c':
                 if l == 'Acknowledgments':
                     inBC = 0
@@ -371,6 +375,9 @@ def parser(Fname, xml=XML, outf=outF):
             auth += line[:-1]
             auth += ' '
             #print(line[:-1])
+        if inCo:
+            cr += l
+            cr += ' '
         watchd+=1
     """
         <article>
