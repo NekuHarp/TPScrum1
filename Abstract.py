@@ -49,6 +49,8 @@ REFS = ['References', 'REFERENCES']
 CONCL = ['Conclusion', 'Conclusions', ' Conclusions and future work', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
 INTR = ['Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
 
+INTREND = ['2', '2.', '2', 'II. SUMMARIZATION WITH TEXT PRESENTATION', '2. Sentence Boundary Detection for MSA', '2 The Skip-gram Model', '2. Core system: SumBasic']
+
 CORPS = ['2.','2','II.']
 
 _MAX_LEN = 80
@@ -180,6 +182,8 @@ def parser(Fname, xml=XML, outf=outF):
     inC = True
     inI = False
 
+    inCo = False
+
     if(xml):
         XML = True
         _EOUT = 'xml'
@@ -275,6 +279,11 @@ def parser(Fname, xml=XML, outf=outF):
             line = line[len(regex)-2:]
             inW = True
             Wflag = 1
+        if l in INTREND:
+            inBC = 0
+            inI = False
+            inCo = True
+            inB = ''
         if line == eol or re.search(nreg, line):
             line = ""
             inW = False
@@ -299,7 +308,7 @@ def parser(Fname, xml=XML, outf=outF):
         if re.search(rregex, line, re.IGNORECASE) or (len(line)>len(rfregex) and line[1:]==rfregex):
             inR = True
         if inI:
-            if re.search(endIntroReg, line):
+            if l in INTREND:
                 inI = False
                 continue
             else:
