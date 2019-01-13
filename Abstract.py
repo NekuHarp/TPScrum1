@@ -38,6 +38,14 @@ _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
 
+HTML_ESCAPE_TABLE = {
+    "&": "&amp;",
+    '"': "&quot;",
+    "'": "&apos;",
+    ">": "&gt;",
+    "<": "&lt;",
+}
+
 SKIP = ['IEEE TRANSACTIONS ON SPEECH AND AUDIO PROCESSING, VOL. 12, NO. 4, JULY 2004', '401']
 
 REMOV_TITLE = [',', 'and', 'a,*,', 'a,', 'b,1', 'of']
@@ -46,10 +54,11 @@ IGNORE_ME = ['in', 'and', 'for']
 DISC = ['Discussion']
 ACK = ['Acknowledgements', 'ACKNOWLEDGMENT', 'Acknowledgments']
 REFS = ['References', 'REFERENCES']
-CONCL = ['Conclusion', 'Conclusions', ' Conclusions and future work', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
-INTR = ['Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
+CONCL = ['Conclusion', 'Conclusions', ' Conclusions and future work', 'Conclusions and Future Work', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
+INTR = ['∗','Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
 
 INTREND = ['2', '2.', '2', 'II. SUMMARIZATION WITH TEXT PRESENTATION', '2. Sentence Boundary Detection for MSA', '2 The Skip-gram Model', '2. Core system: SumBasic']
+CONCL_END = ['Follow-Up Work']
 
 CORPS = ['2.','2','II.']
 
@@ -167,6 +176,9 @@ def status(str):
     sys.stdout.write('\r'+str+'\n')
     sys.stdout.flush()
 
+def html_escape(raw):
+    return "".join(HTML_ESCAPE_TABLE.get(c,c) for c in raw)
+
 # print '[100m {} [49m\n'.format(APP_NAME)
 # for i in range(11):
 #     time.sleep(0.2)
@@ -231,7 +243,10 @@ def parser(Fname, xml=XML, outf=outF):
     ds = ""
     cn = ""
 
-    ficher = open(Fname, "r")
+    try:
+        ficher = open(Fname, "r", errors='ignore')
+    except:
+        return
     abst = ""
     auth = ""
     refs = ""
@@ -260,7 +275,7 @@ def parser(Fname, xml=XML, outf=outF):
         #    watchd = 0
             #continue
         try:
-            if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")]:
+            if Wflag == 0 and not False in [(i[0].isupper() or i in REMOV_TITLE) for i in st.split(" ")]:
                 #print(" {} {} ".format([(i[0].isupper() or i in REMOV_TITLE) for i in l.split(" ")], line[:-1]))
                 inT = False
                 inW = False
@@ -295,8 +310,6 @@ def parser(Fname, xml=XML, outf=outF):
                 inB = 'i'
             elif inBC == 0 and inB != 0:
                 inB = 0
-            else:
-                inBC = 0
             eolc += 1
         else:
             eolc = 0
@@ -359,7 +372,7 @@ def parser(Fname, xml=XML, outf=outF):
                 #nt += " "
                 pass
             elif inB == 'c':
-                if l == 'Acknowledgments':
+                if st in ACK or s in CONCL_END:
                     inBC = 0
                     continue
                 else:
@@ -406,17 +419,18 @@ def parser(Fname, xml=XML, outf=outF):
     refs = ' '.join(refs.split())
 
     if(XML):
+        """ Escaping like a -BOSS-"""
         f.write("<{}>\n".format(_ARTICLE))
         f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1][:-len(_EOUT)-1]))
-        f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, title))
-        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, auth))
-        f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, abst))
-        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, refs))
+        f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, html_escape(title)))
+        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, html_escape(auth)))
+        f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, html_escape(abst)))
+        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, html_escape(refs)))
         # PLUS
-        f.write("\t<{0}>{1}</{0}>\n".format(_INTR, nt))
-        f.write("\t<{0}>{1}</{0}>\n".format(_CORP, cr))
-        f.write("\t<{0}>{1}</{0}>\n".format(_DISC, ds))
-        f.write("\t<{0}>{1}</{0}>\n".format(_CONCL, cn))
+        f.write("\t<{0}>{1}</{0}>\n".format(_INTR, html_escape(nt)))
+        f.write("\t<{0}>{1}</{0}>\n".format(_CORP, html_escape(cr)))
+        f.write("\t<{0}>{1}</{0}>\n".format(_DISC, html_escape(ds)))
+        f.write("\t<{0}>{1}</{0}>\n".format(_CONCL, html_escape(cn)))
         f.write("</{}>".format(_ARTICLE))
     else :
         f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
