@@ -10,6 +10,7 @@ import time
 TEST = 1
 
 APP_NAME = 'PDF Parser 1.1'
+VERSION = '1.0.1 d'
 HELP_MSG = ['Creating output folder . . .','','','Tasks complete !']
 
 outF = 'out'
@@ -18,6 +19,23 @@ _EXT = 'pdf'
 _TXT = 'txt'
 _EOUT = 'txt'
 _DESC = 'desc'
+
+PDF_HEADER = "%PDF-"
+
+_XML_TAGS = {
+    '_ARTICLE' : 'article',
+    '_PREAMBULE' : 'preambule',
+    '_TITRE' : 'titre',
+    '_AUTEUR' : 'auteur',
+    '_ABSTRACT' : 'abstract',
+    '_BIBLIO' : 'biblio',
+    '_ACK' : 'acknowledgements',
+    '_REFS' : 'references',
+    '_INTR' : 'introduction',
+    '_CORP' : 'corps',
+    '_DISC' : 'discussion',
+    '_CONCL' : 'conclusion'
+}
 
 _ARTICLE = 'article'
 _PREAMBULE = 'preambule'
@@ -33,6 +51,39 @@ _INTR = 'introduction'
 _CORP = 'corps'
 _DISC = 'discussion'
 _CONCL = 'conclusion'
+
+_TXT_TAGS = {
+    '_HEADER' : '[PDF PARSER {}]'.format(VERSION),
+    '_ARTICLE' : '\n[ARTICLE]\n',
+    '_PREAMBULE' : '\n[PREAMBULE]\n',
+    '_TITRE' : '\n[TITRE]\n',
+    '_AUTEUR' : '\n[AUTEUR]\n',
+    '_ABSTRACT' : '\n[ABSTRACT]\n',
+    '_BIBLIO' : '\n[BIBLIO]\n',
+    '_ACK' : '\n[ACKNOWLEDGEMENTS]\n',
+    '_REFS' : '\n[REFERENCES]\n',
+    '_INTR' : '\n[INTRODUCTION]\n',
+    '_CORP' : '\n[CORPS]\n',
+    '_DISC' : '\n[DISCUSSION]\n',
+    '_CONCL' : '\n[CONCLUSION]\n'
+}
+
+_HEADER = "[PDF PARSER {}]".format(VERSION)
+
+_DO = {
+    '_HEADER' : True,
+    '_PREAMBULE' : True,
+    '_TITRE' : True,
+    '_AUTEUR' : True,
+    '_ABSTRACT' : True,
+    '_BIBLIO' : True,
+    '_ACK' : False,
+    '_REFS' : False,
+    '_INTR' : True,
+    '_CORP' : True,
+    '_DISC' : True,
+    '_CONCL' : True
+}
 
 _CFLAG = ['t', 'x']
 _SFLAG = '-'
@@ -55,8 +106,9 @@ DISC = ['Discussion']
 ACK = ['Acknowledgements', 'ACKNOWLEDGMENT', 'Acknowledgments']
 REFS = ['References', 'REFERENCES']
 CONCL = ['Conclusion', 'Conclusions', ' Conclusions and future work', 'Conclusions and Future Work', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
-INTR = ['∗','Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction']
+INTR = ['∗','Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction', 'I. I NTRODUCTION']
 
+AUTH_END = ['This article ']
 INTREND = ['2', '2.', '2', 'II. SUMMARIZATION WITH TEXT PRESENTATION', '2. Sentence Boundary Detection for MSA', '2 The Skip-gram Model', '2. Core system: SumBasic']
 CONCL_END = ['Follow-Up Work']
 
@@ -64,6 +116,7 @@ CORPS = ['2.','2','II.']
 
 _MAX_LEN = 80
 
+_DIGITS = '0123456789.,; ()[]'
 _ASCII_TEXT = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '
 
 XML = False
@@ -85,6 +138,42 @@ class Parser:
         if not os.path.exists(self.outD):
             os.makedirs(self.outD)
 
+    def getXMLTags(self):
+        return _XML_TAGS
+
+    def getXMLTag(self, val):
+        return '' if not val in _XML_TAGS else _XML_TAGS[val]
+
+    def setXMLTag(self, key, val):
+        if key in _XML_TAGS:
+            _XML_TAGS[key] = val
+            return True
+        return False
+
+    def getTXTTags(self):
+        return _TXT_TAGS
+
+    def getTXTTag(self, val):
+        return '' if not val in _TXT_TAGS else _TXT_TAGS[val]
+
+    def setTXTTag(self, key, val):
+        if key in _TXT_TAGS:
+            _TXT_TAGS[key] = val
+            return True
+        return False
+
+    def getDoTags(self):
+        return _DO
+
+    def getDoTag(self, val):
+        return '' if not val in _DO else _DO[val]
+
+    def setDoTag(self, key, val):
+        if key in _DO:
+            _DO[key] = val
+            return True
+        return False
+
     def _update(self):
         self.outD = '{}/{}'.format(self.wd, self.outF)
         self.checkDir()
@@ -104,12 +193,25 @@ class Parser:
         self._update()
         return True
 
+    def checkPDF(self, fname):
+        try:
+            fichier = open(fname, "r", errors='ignore')
+            for l in fichier:
+                if l.startswith(PDF_HEADER):
+                    return True
+                else:
+                    return False
+        except:
+            return False
+        return True
+
     def listDir(self, wd=''):
         if wd == '':
             wd = self.wd
         if os.path.exists(wd):
             gl = glob.glob('{}/*.{}'.format(wd, "pdf"))
             gl = [g.replace('\\','/') for g in gl]
+            gl = [g for g in gl if self.checkPDF(g)]
             return gl
         else:
             return []
@@ -122,7 +224,10 @@ class Parser:
             else:
                 p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
                 p.wait()
-        r = parser(Fname, xml=True, outf=self.outF)
+        try:
+            r = parser(Fname, xml=True, outf=self.outF)
+        except:
+            r = ''
         if q!='': q.put(r)
         return r
 
@@ -134,23 +239,34 @@ class Parser:
             else:
                 p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
                 p.wait()
-        r = parser(Fname, xml=False, outf=self.outF)
+        try:
+            r = parser(Fname, xml=False, outf=self.outF)
+        except:
+            r = ''
         if q!='': q.put(r)
         return r
 
     def fromPDFtoXML(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
+        if not checkPDF(fname): return ''
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        r = parser(Fname, xml=True, outf=self.outF)
+        try:
+            r = parser(Fname, xml=True, outf=self.outF)
+        except:
+            r = ''
         if q!='': q.put(r)
         return r
 
     def fromPDFtoTXT(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
+        if not checkPDF(fname): return ''
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
-        r = parser(Fname, xml=False, outf=self.outF)
+        try:
+            r = parser(Fname, xml=False, outf=self.outF)
+        except:
+            r = ''
         if q!='': q.put(r)
         return r
 
@@ -178,6 +294,12 @@ def status(str):
 
 def html_escape(raw):
     return "".join(HTML_ESCAPE_TABLE.get(c,c) for c in raw)
+
+def sanitize_body(raw):
+    try:
+        return ' '.join(("\n".join([i for i in raw.split("\n") if len(i)>4 and not (len(i) == len([j for j in i if j in _DIGITS]))])).split(' '))
+    except:
+        return raw
 
 # print '[100m {} [49m\n'.format(APP_NAME)
 # for i in range(11):
@@ -385,8 +507,16 @@ def parser(Fname, xml=XML, outf=outF):
             abst += line[:-1]
             abst += ' '
         if not inW and not inT and Wflag == 0 and not re.search(uregex, line, re.IGNORECASE):
-            auth += line[:-1]
-            auth += ' '
+            if not True in [st.startswith(i) for i in AUTH_END]:
+                auth += line[:-1]
+                auth += ' '
+            else:
+                inT = False
+                inW = True
+                Wflag = 1
+                abst += line[:-1]
+                abst += ' '
+                #print(st)
             #print(line[:-1])
         if inCo:
             cr += l
@@ -420,20 +550,40 @@ def parser(Fname, xml=XML, outf=outF):
 
     if(XML):
         """ Escaping like a -BOSS-"""
-        f.write("<{}>\n".format(_ARTICLE))
-        f.write("\t<{0}>{1}</{0}>\n".format(_PREAMBULE, Fname.split('/')[-1][:-len(_EOUT)-1]))
-        f.write("\t<{0}>{1}</{0}>\n".format(_TITRE, html_escape(title)))
-        f.write("\t<{0}>{1}</{0}>\n".format(_AUTEUR, html_escape(auth)))
-        f.write("\t<{0}>{1}</{0}>\n".format(_ABSTRACT, html_escape(abst)))
-        f.write("\t<{0}>{1}</{0}>\n".format(_BIBLIO, html_escape(refs)))
+        f.write("<{}>\n".format(_XML_TAGS['_ARTICLE']))
+        if _DO['_PREAMBULE']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_PREAMBULE'], Fname.split('/')[-1][:-len(_EOUT)-1]))
+        if _DO['_TITRE']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_TITRE'], html_escape(title)))
+        if _DO['_AUTEUR']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_AUTEUR'], html_escape(auth)))
+        if _DO['_ABSTRACT']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_ABSTRACT'], html_escape(abst)))
+        if _DO['_BIBLIO']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_BIBLIO'], html_escape(refs)))
         # PLUS
-        f.write("\t<{0}>{1}</{0}>\n".format(_INTR, html_escape(nt)))
-        f.write("\t<{0}>{1}</{0}>\n".format(_CORP, html_escape(cr)))
-        f.write("\t<{0}>{1}</{0}>\n".format(_DISC, html_escape(ds)))
-        f.write("\t<{0}>{1}</{0}>\n".format(_CONCL, html_escape(cn)))
-        f.write("</{}>".format(_ARTICLE))
+        if _DO['_INTR']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_INTR'], html_escape(nt)))
+        if _DO['_CORP']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_CORP'], sanitize_body(html_escape(cr))))
+        if _DO['_DISC']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_DISC'], html_escape(ds)))
+        if _DO['_CONCL']: f.write("\t<{0}>{1}</{0}>\n".format(_XML_TAGS['_CONCL'], html_escape(cn)))
+        f.write("</{}>".format(_XML_TAGS['_ARTICLE']))
     else :
-        f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
+        """ OneLine Compress """
+        title = ' '.join(title.split())
+        auth = ' '.join(auth.split())
+        abst = ' '.join(abst.split())
+        refs = ' '.join(refs.split())
+        nt = ' '.join(nt.split())
+        cr = ' '.join(sanitize_body(cr).split())
+        ds = ' '.join(ds.split())
+        cn = ' '.join(cn.split())
+        if _DO['_HEADER']: f.write("{}".format(_TXT_TAGS['_HEADER']))
+        if _DO['_PREAMBULE']: f.write("{}{}".format(_TXT_TAGS['_PREAMBULE'], Fname.split('/')[-1][:-len(_EOUT)-1]))
+        if _DO['_TITRE']: f.write("{}{}".format(_TXT_TAGS['_TITRE'], title))
+        if _DO['_AUTEUR']: f.write("{}{}".format(_TXT_TAGS['_AUTEUR'], auth))
+        if _DO['_ABSTRACT']: f.write("{}{}".format(_TXT_TAGS['_ABSTRACT'], abst))
+        if _DO['_BIBLIO']: f.write("{}{}".format(_TXT_TAGS['_BIBLIO'], refs))
+
+        if _DO['_INTR']: f.write("{}{}".format(_TXT_TAGS['_INTR'], nt))
+        if _DO['_CORP']: f.write("{}{}".format(_TXT_TAGS['_CORP'], cr))
+        if _DO['_DISC']: f.write("{}{}".format(_TXT_TAGS['_DISC'], ds))
+        if _DO['_CONCL']: f.write("{}{}".format(_TXT_TAGS['_CONCL'], cn))
+        #f.write("{}\n{}\n{}".format(Fname.split('/')[-1], title, abst))
     # print(abst[:_MAX_LEN])
     # print("\n")
     # print(title[:_MAX_LEN])

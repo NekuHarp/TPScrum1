@@ -7,6 +7,7 @@ import subprocess
 import glob
 import time
 import queue
+import re
 
 from Abstract import Parser
 
@@ -118,11 +119,11 @@ HTML_code = """
     .p1 { flex: 1 1 800px; }
     ul.panels-menu { margin-bottom: 0; padding-left: 0; list-style: none;
     position: relative; min-width: 15em; max-width: 20em; margin-top: 3em;}
-    .panels-content { margin-top: 3em; padding: 0px 40px; width: 100%; color:
-    #5E6063; display: none;}
-    .panels-content.active { display: block;}
+    .panels-content { padding: 0px 40px; width: 100%; color:
+    #5E6063; display: none; margin-right: 54px;}
+    .panels-content.active { display: block; overflow-x: auto;}
     .pane-title { font-size: 1.75em; font-weight: bold; line-height:  1;
-    margin-bottom: .75em; margin-top:  0; color: #2F2F34; }
+    margin-bottom: .75em; margin-top: 2.5em; color: #2F2F34; }
 
     #console { max-height: 8rem; overflow-wrap: normal; overflow-y: auto; padding: 0 8px;}
     .msg:before { content:  ''; width:  8px; background: rgba(105, 127, 138,
@@ -180,10 +181,10 @@ HTML_code = """
     li.key:last-child { border: none; }
 
     span.about-title { font-size: 3rem; font-weight: 600; line-height: 4rem;
-    margin-bottom: .75em; margin-top: 0; color: #2F2F34; display: flex;
+    margin-bottom: .75em; color: #2F2F34; display: flex;
     text-align:  center; margin:  0 auto; margin-left:  auto; width:
     fit-content; eight: 4rem; transition: .2s all ease-in-out; transform:
-    scale3d(1, 1, 1); }
+    scale3d(1, 1, 1); margin-top: 1.5em;}
     .about-title .ico { width: 4rem; height: 4rem; }
     span.about-version { text-align: center; width: 100%; margin:  0 auto;
     margin-bottom: .25rem; font-size: 1.6rem; font-weight: 200; display: flex;
@@ -192,6 +193,25 @@ HTML_code = """
     all ease-in-out; text-shadow: 2px 2px 0px #F3F3F2, 4px 4px 2px rgba(164,
     177, 182, 0.6); }
 
+    ::-webkit-scrollbar { height: 14px; width: 14px; border-color: #F3F3F2; }
+    ::-webkit-scrollbar-thumb { background-clip: padding-box; border-radius: 7px;
+    border-color: #F3F3F2; background-color: rgba(66, 66, 66, 0.8); border-style:
+    solid; border-width: 3px; } ::-webkit-scrollbar-track { background-clip:
+    padding-box; border-radius: 8px; border-color: #F3F3F2; background-color:
+    rgba(66, 66, 66, .12); border-style: solid; border-width: 2px; }
+    ::-webkit-scrollbar-track { border-width: initial }
+    ::-webkit-scrollbar-corner { background-color: transparent }
+
+    .markup { font-size: 0.9375rem; word-wrap: break-word; margin: 0; padding: 0; }
+    pre { background: rgba(47, 47, 52, .9); display: flex; }
+    .markup pre { border-radius: 5px; box-sizing: border-box; font-family:
+    Consolas,Liberation Mono,Menlo,Courier,monospace; max-width: 90%; white-space:
+    pre-wrap; line-height: 1.3; user-select: text; padding:  .5rem; }
+    code { margin:  0; padding:  0; display: flex; }
+    .tag .name {color: #e06c75;}
+    .xml { color: #abb2bf; flex-direction: column;}
+    .text { color: #abb2bf; flex-direction: column;}
+    .sub { padding-left: 1em; }
 
     .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
     display: block; margin-bottom: .5em;}
@@ -502,10 +522,20 @@ HTML_code += """<div class="left" style="
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
 for g in gl:
     f = ''.join(g.split('/')[-1:])
-    _f = f.split('_')
-    f0 = _f[0] if len(_f)>0 else ''
-    f1 = _f[1] if len(_f)>1 else ''
-    f2 = _f[2] if len(_f)>2 else ''
+    if('_' in f):
+        _f = f.split('_')
+        f0 = _f[0] if len(_f)>0 else ''
+        f1 = _f[1] if len(_f)>1 else ''
+        f2 = _f[2] if len(_f)>2 else ''
+    else:
+        if('-' in f):
+            _f = f.split('-')
+            f0 = _f[0] if len(_f)>0 else ''
+        else:
+            f0 = '?'
+        m_year = re.match(r'.*([1-3][0-9]{3})', f)
+        f1 = m_year.group(1)
+        if f1 == '': f1 = '?'
     HTML_code += """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
     <div class="tb-e"><span>{2}</span></div>
     <div class="tb-e"><span>{3}</span></div>
@@ -596,14 +626,47 @@ for i in KBINDS:
                             <div class="tb-e"><span>{0}</span></div>
                             <div class="tb-e tb-g"><span>{1}</span></div>
                         </li>""".format(i, KBINDS[i])
+DO_TAGS = parser.getDoTags()
+XML_TAGS = parser.getXMLTags()
+TXT_TAGS = parser.getTXTTags()
 HTML_code += """</ul>
                 </div>
             </div>
             <div class="panels-content" id="Struc">
                 <h2 class="pane-title">Structures</h2>
                 <div class="pane-block">
-                    <span>TODO: Struc</span>
-                    <span>(XML show/hide, TXT format)</span>
+                    <span>Pre-defined output</span>
+                </div>
+                <div class="pane-block">
+                    <div class="markup">
+                        <pre>
+                            <code class="xml">
+                                <span class="tag">&lt;<span class="name">article</span>&gt;</span>
+                            """
+for tag in DO_TAGS:
+    if tag in XML_TAGS and DO_TAGS[tag]:
+        HTML_code += """ <span class="tag sub">&lt;<span class="name">{0}</span>&gt; the {0} &lt;/<span class="name">{0}</span>&gt;</span>
+                                """.format(XML_TAGS[tag])
+HTML_code += """                <span class="tag">&lt;/<span class="name">article</span>&gt;</span>
+                            </code>
+                        </pre>
+                    </div>
+                </div>
+                <div class="pane-block">
+                    <div class="markup">
+                        <pre>
+                            <code class="text">
+                            """
+for tag in DO_TAGS:
+    if tag in TXT_TAGS and DO_TAGS[tag]:
+        if(tag != '_HEADER'):
+            HTML_code += """ <span class="tag"><span class="name">{0}</span></span>
+                            <span class="tag"> the {1} </span>""".format(TXT_TAGS[tag], tag[1:].lower())
+        else:
+            HTML_code += """ <span class="tag"><span class="name">{0}</span></span>""".format(TXT_TAGS[tag].strip())
+HTML_code += """            </code>
+                        </pre>
+                    </div>
                 </div>
             </div>"""
 HTML_code += """
@@ -759,10 +822,30 @@ def _refresh(js_callback=None):
         fls_set(browser, html)
         for g in gl:
             f = ''.join(g.split('/')[-1:])
-            _f = f.split('_')
-            f0 = _f[0] if len(_f)>0 else ''
-            f1 = _f[1] if len(_f)>1 else ''
-            f2 = _f[2] if len(_f)>2 else ''
+            if('_' in f):
+                _f = f.split('_')
+                f0 = _f[0] if len(_f)>0 else ''
+                try:
+                    m_year = re.match(r'.*([1-3][0-9]{3})', f)
+                    f1 = m_year.group(1)
+                except:
+                    f1 = '?'
+                f2 = _f[2] if len(_f)>2 else ''
+            else:
+                if('-' in f):
+                    _f = f.split('-')
+                    f0 = _f[0] if len(_f)>0 else ''
+                    f1 = _f[1] if len(_f)>1 else ''
+                    f2 = _f[2] if len(_f)>2 else ''
+                else:
+                    f0 = '?'
+                try:
+                    m_year = re.match(r'.*([1-2][0-9]{3})', f)
+                    f1 = m_year.group(1)
+                except:
+                    f1 = '?'
+                f2 = ''
+
             if g in files:
                 html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')" checked></div>
                 <div class="tb-e"><span>{2}</span></div>
@@ -786,12 +869,15 @@ def _parse(js_callback=None, xml=True):
         fls_set(browser, html)
         for g in files:
             q = queue.Queue()
-            if xml:
-                t = threading.Thread(target=parser.fromTexttoXML, args=['{}'.format(g), q])
-            else:
-                t = threading.Thread(target=parser.fromTexttoTXT, args=['{}'.format(g), q])
-            t.start()
-            outF = q.get()
+            try:
+                if xml:
+                    t = threading.Thread(target=parser.fromTexttoXML, args=['{}'.format(g), q])
+                else:
+                    t = threading.Thread(target=parser.fromTexttoTXT, args=['{}'.format(g), q])
+                    t.start()
+                    outF = q.get()
+            except:
+                continue
             html = '<li class="file animated"><div class="tb-e tb1">{}</div><div class="tb-e"><span>{}</span></div></li>'.format(ico_pdf, ''.join(outF.split('/')[-1:]))
             # js_print(js_callback.GetFrame().GetBrowser(),
             #          "Parser", "file_load",
