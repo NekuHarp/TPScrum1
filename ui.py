@@ -23,6 +23,8 @@ parser = Parser(wd, outF)
 APP_NAME = 'PDF Parser 1.1'
 VERSION = '1.0.1 d'
 
+_DEBUG = False
+
 TEAM = ['GRANIER Jean-Clair', 'BOUCHET Lucas', 'BARRIOL Rémy', 'WATTIN Tristan', 'MALEPLATE Bastien']
 
 gl = parser.listDir()
@@ -715,10 +717,22 @@ HTML_code += """</div>
 def main():
     check_versions()
     sys.excepthook = cef.ExceptHook
-    cef.Initialize()
+    settings = {
+        "context_menu": {
+            "enabled": _DEBUG,
+            "navigation": False,
+            "print": False,
+            "view_source": False,
+            "external_browser": False,
+            "devtools": True,
+        },
+        # "product_version": "MyProduct/10.00",
+         "user_agent": "MyAgent/20.00 MyProduct/10.00",
+    }
+    cef.Initialize(settings=settings)
     browser = cef.CreateBrowserSync(url=html_to_data_uri(HTML_code),
                                     window_title=APP_NAME)
-    #browser.SetIcon("./res/pdf.ico")
+    #SetIcon("./res/pdf.ico")
     set_client_handlers(browser)
     set_javascript_bindings(browser)
 
