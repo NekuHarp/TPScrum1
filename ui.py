@@ -48,6 +48,8 @@ ico_pdf = """<svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 </svg>
 """
 
+ico_failed = """ X """
+
 HTML_code = """
 <!DOCTYPE html>
 <html>
@@ -888,14 +890,17 @@ def _parse(js_callback=None, xml=True):
                     t = threading.Thread(target=parser.fromTexttoXML, args=['{}'.format(g), q])
                 else:
                     t = threading.Thread(target=parser.fromTexttoTXT, args=['{}'.format(g), q])
-                    t.start()
-                    outF = q.get()
+                t.start()
+                outF = q.get()
+                if(outF == ''):
+                    html = '<li class="file animated"><div class="tb-e tb1">{}</div><div class="tb-e"><span>{}</span></div></li>'.format(ico_failed, ''.join(outF.split('/')[-1:]))
+                else:
+                    html = '<li class="file animated"><div class="tb-e tb1">{}</div><div class="tb-e"><span>{}</span></div></li>'.format(ico_pdf, ''.join(outF.split('/')[-1:]))
+                # js_print(js_callback.GetFrame().GetBrowser(),
+                #          "Parser", "file_load",
+                #          "> {}".format(g))
             except:
-                continue
-            html = '<li class="file animated"><div class="tb-e tb1">{}</div><div class="tb-e"><span>{}</span></div></li>'.format(ico_pdf, ''.join(outF.split('/')[-1:]))
-            # js_print(js_callback.GetFrame().GetBrowser(),
-            #          "Parser", "file_load",
-            #          "> {}".format(g))
+                html = '<li class="file animated"><div class="tb-e tb1">{}</div><div class="tb-e"><span>{}</span></div></li>'.format(ico_failed, ''.join(outF.split('/')[-1:]))
             args = [browser, html]
             threading.Timer(0.5, fls_add, args).start()
 
