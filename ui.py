@@ -11,19 +11,25 @@ import re
 
 from Abstract import Parser
 
-wd='./dossier/'
-outF = 'outF'
-
-parser = Parser(wd, outF)
+parser = Parser()
+wd = parser.getWD()
+outF = parser.getOutF()
+#parser.saveConfig()
 # parser.fromTexttoXML('./dossier/Lin_2004_Rouge.txt')
 # parser.fromTexttoTXT('./dossier/Lin_2004_Rouge.txt')
 # parser.fromPDFtoXML('./dossier/Lin_2004_Rouge.pdf')
 # parser.fromPDFtoTXT('./dossier/Lin_2004_Rouge.pdf')
 
-APP_NAME = 'PDF Parser 1.1'
-VERSION = '1.0.1 d'
+#parser.loadConfig()
+#parser.setDoTag('_CONCL', True)
+#parser.setXMLTag('_CONCL', 'pickle')
+#parser.setTXTTag('_CONCL', '\n[PICKLE]\n')
+#parser.saveConfig()
 
-_DEBUG = False
+APP_NAME = 'PDF Parser 1.1'
+VERSION = parser.getVersion()
+
+_DEBUG = True
 
 TEAM = ['GRANIER Jean-Clair', 'BOUCHET Lucas', 'BARRIOL Rémy', 'WATTIN Tristan', 'MALEPLATE Bastien']
 
@@ -35,6 +41,7 @@ FCNT = len(gl)
 
 KBINDS = {',': 'Settings', 'Enter': 'Save/Start', 'Esc': 'Exit Settings', 'x': 'Toggle XML mode', 'r': 'Refresh', 's': 'Select all files / > Structures', 'c': '> Core', 'k': '> Keybind', 'a': '> About'}
 
+_MESSAGE = ['','','No Files Found.']
 
 ico_pdf = """<svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
   <path fill="#f3f3f2" d="M4 3v18h12l4-4V3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
@@ -48,7 +55,128 @@ ico_pdf = """<svg class="ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24
 </svg>
 """
 
-ico_failed = """ X """
+ico_failed = """ <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <path fill="#f3f3f2" d="M8.3 3L3 8.3v7.4L8.3 21h7.4l5.3-5.3V8.3L15.7 3H8.3z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  <path fill="#c94f53" d="M8.7 4L4 8.7v6.6L8.7 20h6.6l4.7-4.7V8.7L15.3 4H8.7zM9 5h5.8L19 9.1v5.8L14.9 19H9.1L5 14.9V9.1L9.1 5z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+  <path fill="#c94f53" d="M9.2 7.8L7.8 9.2l2.8 2.8-2.8 2.8 1.4 1.4 2.8-2.8 2.8 2.8 1.4-1.4-2.8-2.8 2.8-2.8-1.4-1.4-2.8 2.8-2.8-2.8z" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"/>
+</svg> """
+
+ico_splash = """<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="b">
+      <stop offset="0" stop-color="#a4b1b6" stop-opacity=".3"></stop>
+      <stop offset="1" stop-color="#a4b1b6" stop-opacity="0"></stop>
+    </linearGradient>
+    <linearGradient id="a">
+      <stop offset="0" stop-color="#5a6b74"></stop>
+      <stop offset="1" stop-color="#697f8a"></stop>
+    </linearGradient>
+    <linearGradient id="f" x1="49.6" x2="23.5" y1="63.6" y2="37.5" gradientTransform="translate(-1 18)" gradientUnits="userSpaceOnUse" xlink:href="#a"></linearGradient>
+    <linearGradient id="g" x1="94" x2="38.1" y1="63" y2="7.1" gradientTransform="translate(0 3)" gradientUnits="userSpaceOnUse" xlink:href="#a"></linearGradient>
+    <linearGradient id="e" x1="33" x2="16.7" y1="68" y2="51.7" gradientTransform="translate(-1 13)" gradientUnits="userSpaceOnUse" xlink:href="#a"></linearGradient>
+    <linearGradient id="d" x1="85" x2="15" y1="85" y2="15" gradientUnits="userSpaceOnUse" xlink:href="#a"></linearGradient>
+    <linearGradient id="h" x1="85" x2="15" y1="85" y2="15" gradientUnits="userSpaceOnUse" xlink:href="#a"></linearGradient>
+    <linearGradient id="i" x1="65.5" x2="47.5" y1="70" y2="52" gradientUnits="userSpaceOnUse" xlink:href="#b"></linearGradient>
+    <linearGradient id="c" x1="85" x2="15" y1="85" y2="15" gradientUnits="userSpaceOnUse" xlink:href="#a"></linearGradient>
+  </defs>
+  <path fill="url(#c)" d="M85 50a35 35 0 0 1-35 35 35 35 0 0 1-35-35 35 35 0 0 1 34.9-35A35 35 0 0 1 85 49.9" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path><g class="svg_t t_1" color="#000">
+    <path fill="url(#e)" d="M32 69a12 12 0 0 1-12 12A12 12 0 0 1 8 69a12 12 0 0 1 12-12 12 12 0 0 1 12 12" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <path fill="url(#f)" d="M60 73a20 20 0 0 1-20 20 20 20 0 0 1-20-20 20 20 0 0 1 20-20 20 20 0 0 1 20 20" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+  </g>
+  <path class="svg_t t_2" fill="url(#g)" d="M94 50a16 16 0 0 1-16 16 16 16 0 0 1-16-16 16 16 0 0 1 16-16 16 16 0 0 1 16 16" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+  <path class="svg_t t_3" fill="url(#h)" d="M58 19a12 12 0 0 1-12 12 12 12 0 0 1-12-12A12 12 0 0 1 45.8 7a12 12 0 0 1 12 11.9" color="#000" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+  <g fill="#f3f3f2" color="#000" class="svg_l t_1">
+    <rect width="3" height="1" x="16" y="45" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="5" height="1" x="14" y="43" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="17" y="47" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="21" y="47" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="7" height="1" x="9" y="47" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="8" y="49" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="9" height="1" x="12" y="49" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="22" y="49" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="10" y="51" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="16" y="51" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+  </g>
+  <g fill="#f3f3f2" color="#000" class="svg_l t_2">
+    <rect width="7" height="1" x="65" y="20" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="73" y="20" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="7" height="1" x="62" y="22" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="70" y="22" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="64" y="24" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="68" y="24" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="73" y="24" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="6" height="1" x="69" y="26" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="66" y="26" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="8" height="1" x="57" y="26" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+  </g>
+  <g color="#000">
+    <path fill="#f3f3f2" d="M40 33a3 3 0 0 0-3 3v28a3 3 0 0 0 3 3h17a2 2 0 0 0 1.4-.6l8-8A2 2 0 0 0 67 57V36a3 3 0 0 0-3-3H40z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <path fill="url(#i)" d="M40 34a2 2 0 0 0-2 2v28c0 1.1.9 2 2 2h17l9-9V36a2 2 0 0 0-2-2z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <path fill="#fff" fill-opacity=".5" d="M51 34L38 47v2l15-15zM54 34L38 50v4l20-20zM60 35L38 57v7l2 2h1l25-25v-5l-1-1z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <path fill="#a4b1b6" d="M40 34a2 2 0 0 0-2 2v28c0 1.1.9 2 2 2h17v-1H40a1 1 0 0 1-1-1V36c0-.6.4-1 1-1h24c.6 0 1 .4 1 1v21h1V36a2 2 0 0 0-2-2H40z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <path fill="#a4b1b6" fill-opacity=".5" d="M58 56a2 2 0 0 0-2 2v6a2 2 0 0 0 1.2 1.8l8.6-8.6A2 2 0 0 0 64 56h-6z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <path fill="#a4b1b6" d="M58 56a2 2 0 0 0-2 2v8h1a1 1 0 0 0 .7-.3l8-8a1 1 0 0 0 .3-.7v-1h-8zm0 1h7l-8 8v-7c0-.6.4-1 1-1z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <rect width="10" height="1" x="48" y="40" fill="#92999c" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="6" height="1" x="48" y="44" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="16" height="1" x="44" y="48" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="8" height="1" x="44" y="52" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="10" height="1" x="44" y="56" fill="#92999c" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="14" height="10" x="33" y="37" fill="#f3f3f2" overflow="visible" ry="2" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="12" height="8" x="34" y="38" fill="#c94f53" overflow="visible" ry="1" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="8" height="2" x="36" y="40" fill="#f3f3f2" overflow="visible" ry="0" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <path fill="#f3f3f2" d="M36 41v3l2-2v-1z" overflow="visible" style="isolation:auto;mix-blend-mode:normal"></path>
+    <rect width="4" height="1" x="48" y="42" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="8" height="1" x="53" y="42" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="55" y="44" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="8" height="1" x="48" y="46" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="5" height="1" x="44" y="50" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="50" y="50" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="53" y="52" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="44" y="54" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="7" height="1" x="48" y="54" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="44" y="58" fill="#92999c" overflow="visible" rx=".5" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+  </g>
+  <g fill="#f3f3f2" color="#000" class="svg_l t_3">
+    <rect width="5" height="1" x="67" y="72" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="3" height="1" x="73" y="72" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2.8" height="1" x="67.2" y="74" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="71" y="74" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="7" height="1" x="67" y="76" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="75" y="76" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="2" height="1" x="68" y="78" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="5" height="1" x="71" y="78" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="4" height="1" x="67" y="80" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+    <rect width="6" height="1" x="72" y="80" overflow="visible" ry=".5" style="isolation:auto;mix-blend-mode:normal"></rect>
+  </g>
+</svg>
+"""
+
+def file_name(g):
+    f = ''.join(g.split('/')[-1:])
+    if('_' in f):
+        _f = f.split('_')
+        f0 = _f[0] if len(_f)>0 else ''
+        try:
+            m_year = re.match(r'.*([1-3][0-9]{3})', f)
+            f1 = m_year.group(1)
+        except:
+            f1 = '?'
+        f2 = _f[2] if len(_f)>2 else ''
+    else:
+        if('-' in f):
+            _f = f.split('-')
+            f0 = _f[0] if len(_f)>0 else ''
+            f1 = _f[1] if len(_f)>1 else ''
+            f2 = _f[2] if len(_f)>2 else ''
+        else:
+            f0 = '?'
+        try:
+            m_year = re.match(r'.*([1-2][0-9]{3})', f)
+            f1 = m_year.group(1)
+        except:
+            f1 = '?'
+        f2 = ''
+    return [f, f0, f1, f2]
 
 HTML_code = """
 <!DOCTYPE html>
@@ -61,7 +189,7 @@ HTML_code = """
     .toolbar{ display: -webkit-flex; display: -ms-flexbox; display: flex;
     -webkit-flex-wrap: nowrap; -ms-flex-wrap: nowrap; flex-wrap: nowrap;
     box-sizing: border-box; padding-left: 8px; max-height: 80px; margin-bottom:
-    0px; min-height: 56px;}
+    0px; min-height: 56px; z-index: 2; background: #F3F3F2;}
     .button { color: #424242; text-decoration: none; margin: 0; font-size: 14px;
     font-weight: 400; letter-spacing: 0; opacity: .87;
     line-height: 0px; padding: 0 24px; transition: .2s all ease-in-out;
@@ -206,6 +334,14 @@ HTML_code = """
     ::-webkit-scrollbar-track { border-width: initial }
     ::-webkit-scrollbar-corner { background-color: transparent }
 
+    .list::-webkit-scrollbar { height: 14px; width: 14px; border-color: #1E1E21; }
+    .list::-webkit-scrollbar-thumb { background-clip: padding-box; border-radius: 7px;
+    border-color: #1E1E21; background-color: #c2c5c9; border-style:
+    solid; border-width: 3px; }
+    .list::-webkit-scrollbar-track { background-clip:
+    padding-box; border-radius: 8px; border-color: #1E1E21; background-color:
+    #2F2F34; border-style: solid; border-width: 2px; }
+
     .markup { font-size: 0.9375rem; word-wrap: break-word; margin: 0; padding: 0; }
     pre { background: rgba(47, 47, 52, .9); display: flex; }
     .markup pre { border-radius: 5px; box-sizing: border-box; font-family:
@@ -217,6 +353,25 @@ HTML_code = """
     .text { color: #abb2bf; flex-direction: column;}
     .sub { padding-left: 1em; }
 
+    .splash { display: initial; text-align: center; bottom: 0; height:
+    max-content; left: 0; margin: auto; position: absolute; right: 0; top: 0;
+    max-width: 430px; }
+    .splash svg {max-height: 400px;}
+    .splash span {line-height: 0; font-size: 2em; color: #a4b1b6;}
+    .svg_t {animation-direction: alternate;animation-duration: 1.5s;animation-iteration-count: infinite;animation-name: float-landing;animation-timing-function: ease-in-out;}
+    .svg_l { animation-direction: alternate; animation-duration: 2s;
+    animation-iteration-count: infinite; animation-name: text-landing;
+    animation-timing-function: ease-in-out; }
+    @keyframes float-landing { 0% { -webkit-transform: translate3d(0,-2px,0);
+    transform: translate3d(0,-2px,0) }
+    to { -webkit-transform: translate3d(0,2px,0); transform: translate3d(0,2px,0) } }
+    @keyframes text-landing { 0% { opacity: 0.1; }
+    to { opacity: 1; } }
+
+    .t_3 { animation-delay: .4s; }
+    .t_2 { animation-delay: .6s; }
+
+
     .panels-menu li a { padding: 0.75em 1.5em; transition: .2s all ease-in-out;
     display: block; margin-bottom: .5em;}
     .panels-menu li.selected{ border-left:  4px solid; border-color: #F3F3F2;
@@ -224,7 +379,7 @@ HTML_code = """
     .reduced {transform: scale(.9) translateZ(0px); }
     .grow {transform: scale(.9) translateZ(0px);opacity: 0; transition: .2s all ease-in-out; }
     .animated { animation: show 0.3s 0.25s ease-in-out 1 forwards; opacity: 0;
-    transform: translate(7%, 0); transition: height 2s ease-in-out; overflow: hidden; max-width: 90%;}
+    transform: translate(4em, 0); transition: height 2s ease-in-out; overflow: hidden; max-width: 90%;}
     .animated:nth-child(1) {animation-delay: .2s;}
     .animated:nth-child(2) {animation-delay: .3s;}
     .animated:nth-child(3) {animation-delay: .4s;}
@@ -525,26 +680,12 @@ HTML_code += """<div class="left" style="
             <ul class="files" id="fls">"""
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
 for g in gl:
-    f = ''.join(g.split('/')[-1:])
-    if('_' in f):
-        _f = f.split('_')
-        f0 = _f[0] if len(_f)>0 else ''
-        f1 = _f[1] if len(_f)>1 else ''
-        f2 = _f[2] if len(_f)>2 else ''
-    else:
-        if('-' in f):
-            _f = f.split('-')
-            f0 = _f[0] if len(_f)>0 else ''
-        else:
-            f0 = '?'
-        m_year = re.match(r'.*([1-3][0-9]{3})', f)
-        f1 = m_year.group(1)
-        if f1 == '': f1 = '?'
+    g_f = file_name(g)
     HTML_code += """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
     <div class="tb-e"><span>{2}</span></div>
     <div class="tb-e"><span>{3}</span></div>
     <div class="tb-e tb-g"><span>{1}</span></div>
-    </li>""".format(g, f, f0, f1, f2)
+    </li>""".format(g, g_f[0], g_f[1], g_f[2], g_f[3])
 
 HTML_code += """</ul>
         </div>
@@ -831,50 +972,34 @@ def _refresh(js_callback=None):
 
     clear_files()
 
+    parser.saveConfig()
+
     if js_callback:
         browser = js_callback.GetFrame().GetBrowser()
         file_count(browser, FCNT)
         html = '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
         fls_set(browser, html)
-        for g in gl:
-            f = ''.join(g.split('/')[-1:])
-            if('_' in f):
-                _f = f.split('_')
-                f0 = _f[0] if len(_f)>0 else ''
-                try:
-                    m_year = re.match(r'.*([1-3][0-9]{3})', f)
-                    f1 = m_year.group(1)
-                except:
-                    f1 = '?'
-                f2 = _f[2] if len(_f)>2 else ''
-            else:
-                if('-' in f):
-                    _f = f.split('-')
-                    f0 = _f[0] if len(_f)>0 else ''
-                    f1 = _f[1] if len(_f)>1 else ''
-                    f2 = _f[2] if len(_f)>2 else ''
-                else:
-                    f0 = '?'
-                try:
-                    m_year = re.match(r'.*([1-2][0-9]{3})', f)
-                    f1 = m_year.group(1)
-                except:
-                    f1 = '?'
-                f2 = ''
-
-            if g in files:
-                html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')" checked></div>
-                <div class="tb-e"><span>{2}</span></div>
-                <div class="tb-e"><span>{3}</span></div>
-                <div class="tb-e tb-g"><span>{1}</span></div>
-                </li>""".format(g, f, f0, f1, f2)
-            else:
-                html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
-                <div class="tb-e"><span>{2}</span></div>
-                <div class="tb-e"><span>{3}</span></div>
-                <div class="tb-e tb-g"><span>{1}</span></div>
-                </li>""".format(g, f, f0, f1, f2)
+        if FCNT<1:
+            html = """ <div class="splash">{}<span>{}</span></div> """.format(ico_splash, _MESSAGE[2])
             fls_add(browser, html)
+        else:
+            for g in gl:
+                g_f = file_name(g)
+                #TODO: PARSE
+
+                if g in files:
+                    html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')" checked></div>
+                    <div class="tb-e"><span>{2}</span></div>
+                    <div class="tb-e"><span>{3}</span></div>
+                    <div class="tb-e tb-g"><span>{1}</span></div>
+                    </li>""".format(g, g_f[0], g_f[1], g_f[2], g_f[3])
+                else:
+                    html = """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
+                    <div class="tb-e"><span>{2}</span></div>
+                    <div class="tb-e"><span>{3}</span></div>
+                    <div class="tb-e tb-g"><span>{1}</span></div>
+                    </li>""".format(g, g_f[0], g_f[1], g_f[2], g_f[3])
+                fls_add(browser, html)
 
 def _parse(js_callback=None, xml=True):
     outF = ""

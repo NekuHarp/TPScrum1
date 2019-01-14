@@ -6,11 +6,12 @@ import os
 import subprocess
 import argparse
 import time
+import pickle
 
 TEST = 1
 
 APP_NAME = 'PDF Parser 1.1'
-VERSION = '1.0.1 d'
+VERSION = '1.0.1 e'
 HELP_MSG = ['Creating output folder . . .','','','Tasks complete !']
 
 outF = 'out'
@@ -36,21 +37,6 @@ _XML_TAGS = {
     '_DISC' : 'discussion',
     '_CONCL' : 'conclusion'
 }
-
-_ARTICLE = 'article'
-_PREAMBULE = 'preambule'
-_TITRE = 'titre'
-_AUTEUR = 'auteur'
-_ABSTRACT = 'abstract'
-_BIBLIO = 'biblio'
-
-_ACK = 'acknowledgements'
-_REFS = 'references'
-
-_INTR = 'introduction'
-_CORP = 'corps'
-_DISC = 'discussion'
-_CONCL = 'conclusion'
 
 _TXT_TAGS = {
     '_HEADER' : '[PDF PARSER {}]'.format(VERSION),
@@ -132,11 +118,15 @@ class Parser:
         self.outF = outf
         self.outD = '{}/{}'.format(self.wd, self.outF)
 
+        self.loadConfig()
         self.checkDir()
 
     def checkDir(self):
         if not os.path.exists(self.outD):
             os.makedirs(self.outD)
+
+    def getVersion(self):
+        return VERSION
 
     def getXMLTags(self):
         return _XML_TAGS
@@ -178,6 +168,12 @@ class Parser:
         self.outD = '{}/{}'.format(self.wd, self.outF)
         self.checkDir()
 
+    def getWD(self):
+        return self.wd
+
+    def getOutF(self):
+        return self.outF
+
     def setWD(self, wd):
         if os.path.exists(wd):
             self.wd = wd
@@ -188,8 +184,8 @@ class Parser:
 
     def setOut(self, outf):
         self.outF = outf
-        if not os.path.exists(self.outF):
-            os.makedirs(self.outF)
+        # if not os.path.exists(self.outF):
+            # os.makedirs(self.outF)
         self._update()
         return True
 
@@ -279,6 +275,33 @@ class Parser:
                 else:
                     self.fromTexttoXML(g)
 
+    def saveConfig(self, fname="config.pak"):
+        _out = open(fname, 'wb')
+        pickle.dump(_DO, _out)
+        pickle.dump(_XML_TAGS, _out, -1)
+        pickle.dump(_TXT_TAGS, _out, -1)
+        pickle.dump(self.wd, _out, -1)
+        pickle.dump(self.outF, _out, -1)
+        _out.close()
+
+    def loadConfig(self, fname="config.pak"):
+        if not os.path.isfile(fname):
+            self.saveConfig(fname)
+        else:
+            _in = open(fname, 'rb')
+            try:
+                W_DO = pickle.load(_in)
+                [self.setDoTag(i, W_DO[i]) for i in W_DO]
+                W_XML = pickle.load(_in)
+                [self.setXMLTag(i, W_XML[i]) for i in W_XML]
+                W_TXT = pickle.load(_in)
+                [self.setTXTTag(i, W_TXT[i]) for i in W_TXT]
+                self.wd = pickle.load(_in)
+                self.outF = pickle.load(_in)
+                self.outD = '{}/{}'.format(self.wd, self.outF)
+            except:
+                pass
+            _in.close()
 
 def progress(pos, total, sz):
     step = float(pos)/total
