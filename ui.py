@@ -8,6 +8,7 @@ import glob
 import time
 import queue
 import re
+import pickle
 
 from Abstract import Parser
 
@@ -679,13 +680,16 @@ HTML_code += """<div class="left" style="
         <div class="list">
             <ul class="files" id="fls">"""
 HTML_code += '<li class="fhead"><div class="tb-e tb1"><span>Convert</span></div><div class="tb-e"><span>Author</span></div><div class="tb-e"><span>Year</span></div><div class="tb-e tb-g"><span>File</span></div></li>'
-for g in gl:
-    g_f = file_name(g)
-    HTML_code += """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
-    <div class="tb-e"><span>{2}</span></div>
-    <div class="tb-e"><span>{3}</span></div>
-    <div class="tb-e tb-g"><span>{1}</span></div>
-    </li>""".format(g, g_f[0], g_f[1], g_f[2], g_f[3])
+if len(gl)<1:
+    HTML_code += """ <div class="splash">{}<span>{}</span></div> """.format(ico_splash, _MESSAGE[2])
+else:
+    for g in gl:
+        g_f = file_name(g)
+        HTML_code += """<li class="file animated"><div class="tb-e tb1"><input class="checkb" type="checkbox" name="pdfs" value="{0}" onclick="addFile('{0}')"></div>
+        <div class="tb-e"><span>{2}</span></div>
+        <div class="tb-e"><span>{3}</span></div>
+        <div class="tb-e tb-g"><span>{1}</span></div>
+        </li>""".format(g, g_f[0], g_f[1], g_f[2], g_f[3])
 
 HTML_code += """</ul>
         </div>
@@ -836,10 +840,11 @@ HTML_code += """
                     <h4 class="small-title">Used libraries</h4>
                     <span class="muted">Python {}</span>
                     <span class="muted">Chrome {}</span>
+                    <span class="muted">Pickle {}</span>
                     <span class="muted">CEF {}</span>
                 </div>
                 <div class="pane-block">
-                    <h4 class="small-title">Team</h4>""".format(VERSION,'.'.join(['{}'.format(i) for i in sys.version_info]), cef.GetVersion()['chrome_version'], cef.GetVersion()['cef_version'])
+                    <h4 class="small-title">Team</h4>""".format(VERSION,'.'.join(['{}'.format(i) for i in sys.version_info]), cef.GetVersion()['chrome_version'], pickle.format_version, cef.GetVersion()['cef_version'])
 
 for i in TEAM:
     HTML_code +=  """<span class="muted">{}</span>""".format(i)
@@ -870,7 +875,7 @@ def main():
             "devtools": True,
         },
         # "product_version": "MyProduct/10.00",
-         "user_agent": "MyAgent/20.00 MyProduct/10.00",
+        # "user_agent": "MyAgent/20.00 MyProduct/10.00",
     }
     cef.Initialize(settings=settings)
     browser = cef.CreateBrowserSync(url=html_to_data_uri(HTML_code),

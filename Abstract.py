@@ -11,7 +11,7 @@ import pickle
 TEST = 1
 
 APP_NAME = 'PDF Parser 1.1'
-VERSION = '1.0.1 e'
+VERSION = '1.0.1 e r0'
 HELP_MSG = ['Creating output folder . . .','','','Tasks complete !']
 
 outF = 'out'
