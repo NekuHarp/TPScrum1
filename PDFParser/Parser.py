@@ -20,6 +20,26 @@ CONFIG_DIR = _D.CONFIG_DIR
 PDF_HEADER = _D.PDF_HEADER
 HTML_ESCAPE_TABLE= _D.HTML_ESCAPE_TABLE
 
+SKIP = _D.SKIP
+REMOV_TITLE = _D.REMOV_TITLE
+IGNORE_ME = _D.IGNORE_ME
+DISC = _D.DISC
+ACK = _D.ACK
+REFS = _D.REFS
+CONCL = _D.CONCL
+INTR = _D.INTR
+AUTH_END = _D.AUTH_END
+INTREND = _D.INTREND
+CONCL_END = _D.CONCL_END
+CORPS = _D.CORPS
+_DIGITS = _D._DIGITS
+_ASCII_TEXT = _D._ASCII_TEXT
+_DESC = _D._DESC
+
+
+
+
+
 class Parser:
     def __init__(self, wd='.', outf = outF):
         self.name = "PDF"
@@ -81,11 +101,9 @@ class Parser:
             self.saveConfig(fname)
         r = self.conf.loadConfig(fname);
         self._updateConfig(r)
-        print("TODO: load")
 
     def saveConfig(self, fname="config.pak"):
-        self.conf.saveConfig(self.DO, self.XML_TAGS, self.TXT_TAGS, fname)
-        # self, DO, XML, TXT, fname=""
+        self.conf.saveConfig(self.DO, self.XML_TAGS, self.TXT_TAGS, self.outF, self.wd, self.outD, fname)
         # print("TODO: save")
 
     def checkPDF(self, fname):
@@ -100,7 +118,7 @@ class Parser:
             return False
         return True
 
-    def listDir(self, wd=wd, outf=outF):
+    def listDir(self, wd=wd):
         if wd == '':
             wd = self.wd
         if os.path.exists(wd):
@@ -174,10 +192,10 @@ class Parser:
                 else:
                     self.fromTexttoXML(g)
 
-    def html_escape(raw):
+    def html_escape(self, raw):
         return "".join(HTML_ESCAPE_TABLE.get(c,c) for c in raw)
 
-    def sanitize_body(raw):
+    def sanitize_body(self, raw):
         try:
             return ' '.join(("\n".join([i for i in raw.split("\n") if len(i)>4 and not (len(i) == len([j for j in i if j in _DIGITS]))])).split(' '))
         except:
@@ -427,19 +445,19 @@ class Parser:
         if len(refs) <=1 and len(ref)>1: refs = ref;
         refs = ' '.join(refs.split())
 
-        if(XML):
+        if(self.XML):
             """ Escaping like a -BOSS-"""
             f.write("<{}>\n".format(self.XML_TAGS['_ARTICLE']))
             if self.DO['_PREAMBULE']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_PREAMBULE'], Fname.split('/')[-1][:-len(_EOUT)-1]))
-            if self.DO['_TITRE']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_TITRE'], html_escape(title)))
-            if self.DO['_AUTEUR']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_AUTEUR'], html_escape(auth)))
-            if self.DO['_ABSTRACT']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_ABSTRACT'], html_escape(abst)))
-            if self.DO['_BIBLIO']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_BIBLIO'], html_escape(refs)))
+            if self.DO['_TITRE']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_TITRE'], self.html_escape(title)))
+            if self.DO['_AUTEUR']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_AUTEUR'], self.html_escape(auth)))
+            if self.DO['_ABSTRACT']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_ABSTRACT'], self.html_escape(abst)))
+            if self.DO['_BIBLIO']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_BIBLIO'], self.html_escape(refs)))
             # PLUS
-            if self.DO['_INTR']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_INTR'], html_escape(nt)))
-            if self.DO['_CORP']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_CORP'], sanitize_body(html_escape(cr))))
-            if self.DO['_DISC']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_DISC'], html_escape(ds)))
-            if self.DO['_CONCL']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_CONCL'], html_escape(cn)))
+            if self.DO['_INTR']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_INTR'], self.html_escape(nt)))
+            if self.DO['_CORP']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_CORP'], self.sanitize_body(self.html_escape(cr))))
+            if self.DO['_DISC']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_DISC'], self.html_escape(ds)))
+            if self.DO['_CONCL']: f.write("\t<{0}>{1}</{0}>\n".format(self.XML_TAGS['_CONCL'], self.html_escape(cn)))
             f.write("</{}>".format(self.XML_TAGS['_ARTICLE']))
         else :
             """ OneLine Compress """
@@ -448,7 +466,7 @@ class Parser:
             abst = ' '.join(abst.split())
             refs = ' '.join(refs.split())
             nt = ' '.join(nt.split())
-            cr = ' '.join(sanitize_body(cr).split())
+            cr = ' '.join(self.sanitize_body(cr).split())
             ds = ' '.join(ds.split())
             cn = ' '.join(cn.split())
             if self.DO['_HEADER']: f.write("{}".format(self.TXT_TAGS['_HEADER']))

@@ -11,7 +11,7 @@ path = _D.CONFIG_DIR
 conff = _D.CONFIG_FILE
 
 class Config:
-    def __init__(self, fname="config.pak", path=path, wd=wd, outF=outf):
+    def __init__(self, fname=conff, path=path, wd=wd, outF=outf):
         self.fname = fname
         self.path = path
         self.wd = wd
@@ -60,10 +60,13 @@ class Config:
     def set(self, dict, key, value):
         pass
 
-    def saveConfig(self, DO={}, XML_TAGS={}, TXT_TAGS={}, fname=""):
+    def saveConfig(self, DO={}, XML_TAGS={}, TXT_TAGS={} , outF='', wd='', outD='', fname=""):
         if(DO == {}): DO = self.DO
         if(XML_TAGS == {}): XML_TAGS = self.XML_TAGS
         if(TXT_TAGS == {}): TXT_TAGS = self.TXT_TAGS
+        if(outF == ''): outF = self.outF
+        if(wd == ''): wd = self.wd
+        if(outD == ''): outD = self.outD
         path = self.path
         if not os.path.exists(self.path):
             os.mkdir(self.path)
@@ -76,11 +79,12 @@ class Config:
         pickle.dump(DO, _out)
         pickle.dump(XML_TAGS, _out, -1)
         pickle.dump(TXT_TAGS, _out, -1)
-        #pickle.dump(self.wd, _out, -1)
-        #pickle.dump(self.outF, _out, -1)
+        pickle.dump(wd, _out, -1)
+        pickle.dump(outF, _out, -1)
+        pickle.dump(outD, _out, -1)
         _out.close()
 
-    def loadConfig(self, fname="config.pak"):
+    def loadConfig(self, fname=conff):
         if not os.path.isfile(fname):
             self.saveConfig(fname)
         else:

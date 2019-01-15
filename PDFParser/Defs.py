@@ -72,6 +72,16 @@ _DO = {
     '_CONCL' : True
 }
 
+_CLI_DESC = 'scientific articles parser'
+_CLI_SAVE_TXT = 'Save as text'
+_CLI_SAVE_XML = 'Save as XML'
+_CLI_HELP_FOLDER = "input folder with PDF files"
+_CLI_FOLDER_META = "./documents"
+
+_FLAGS_L = {
+    't': ['--text', 'store_true', _CLI_SAVE_TXT],
+    'x': ['--xml', 'store_true', _CLI_SAVE_XML]
+}
 _CFLAG = ['t', 'x']
 _SFLAG = '-'
 _FLAGS = [_SFLAG+i for i in _CFLAG]
@@ -83,3 +93,29 @@ HTML_ESCAPE_TABLE = {
     ">": "&gt;",
     "<": "&lt;",
 }
+
+_COUNT_SZ = 20
+
+COUNT = 0
+
+SKIP = ['IEEE TRANSACTIONS ON SPEECH AND AUDIO PROCESSING, VOL. 12, NO. 4, JULY 2004', '401']
+
+REMOV_TITLE = [',', 'and', 'a,*,', 'a,', 'b,1', 'of']
+IGNORE_ME = ['in', 'and', 'for']
+
+DISC = ['Discussion']
+ACK = ['Acknowledgements', 'ACKNOWLEDGMENT', 'Acknowledgments']
+REFS = ['References', 'REFERENCES']
+CONCL = ['Conclusion', 'Conclusions', ' Conclusions and future work', 'Conclusions and Future Work', 'CONCLUSIONS AND FURTHER WORK', 'Conclusions and further work', 'Conclusions and future work', 'Conclusion and Future Work', 'IV CONCLUSION']
+INTR = ['∗','Introduction', 'I INTRODUCTION', 'Introduction', 'INTRODUCTION', 'Introduction', 'I. I NTRODUCTION']
+
+AUTH_END = ['This article ']
+INTREND = ['2', '2.', '2', 'II. SUMMARIZATION WITH TEXT PRESENTATION', '2. Sentence Boundary Detection for MSA', '2 The Skip-gram Model', '2. Core system: SumBasic']
+CONCL_END = ['Follow-Up Work']
+
+CORPS = ['2.','2','II.']
+
+_MAX_LEN = 80
+
+_DIGITS = '0123456789.,; ()[]'
+_ASCII_TEXT = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ '

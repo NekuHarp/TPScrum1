@@ -17,6 +17,17 @@ class Client:
         _EOUT = 'txt'
         print(_EOUT, folder)
 
+    def setOut(self, wd):
+        self.p.setWD(wd)
+
+    def ls(self, wd):
+        gl = self.p.listDir(wd)
+        gl = [g.replace('\\','/') for g in gl]
+        return gl
+
+    def parser(self, Fname, xml):
+        return self.p.parser(Fname, xml)
+
     def run(self):
         print("Client {} : {} ".format(self.p.parse("-{}".format(self.id)), _D.VAR))
         self.cli.main()
