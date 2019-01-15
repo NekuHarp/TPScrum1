@@ -244,7 +244,7 @@ class Parser:
 
     def fromPDFtoXML(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
-        if not checkPDF(fname): return ''
+        if not self.checkPDF(fname): return ''
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
         try:
@@ -256,7 +256,7 @@ class Parser:
 
     def fromPDFtoTXT(self, fname, q=''):
         Fname = '{}.{}'.format(fname[:-4], _TXT)
-        if not checkPDF(fname): return ''
+        if not self.checkPDF(fname): return ''
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
         try:

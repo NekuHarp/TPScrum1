@@ -1,0 +1,12 @@
+#!/usr/bin/env python
+
+from PDFParser.Cli import Cli
+import argparse
+import os
+
+class PDFParserCli(object):
+  def __init__(self):
+    c = Cli()
+    c.main()
+
+PDFParserCli()

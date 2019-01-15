@@ -1,0 +1,13 @@
+*.pdf
+*.ps
+*.xml
+*/*.txt
+*/*/*.txt
+*/*/*.zip
+*/*/*/*.txt
+*.pyc
+*~
+*/build
+build/
+MANIFEST
+dist/

@@ -1,6 +1,8 @@
-FROM python:2
+FROM python:3
 
 WORKDIR /usr/src/app
+
+ADD . /PDFParser
 
 COPY requirements.txt ./
 COPY sources.list /etc/apt/
