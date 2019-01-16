@@ -14,12 +14,41 @@ class Config:
     def __init__(self, fname=conff, path=path, wd=wd, outF=outf):
         self.fname = fname
         self.path = path
+        self.conffile = '{}/{}'.format(self.path, self.fname)
         self.wd = wd
         self.outF = outF
         self.outD = '{}/{}'.format(self.wd, self.outF)
         self.DO = _D._DO
         self.XML_TAGS = _D._XML_TAGS
         self.TXT_TAGS = _D._TXT_TAGS
+
+    def checkDir(self):
+        if not os.path.exists(self.outD):
+            os.makedirs(self.outD)
+
+    def _update(self):
+        self.outD = '{}/{}'.format(self.wd, self.outF)
+        self.conffile = '{}/{}'.format(self.path, self.fname)
+        self.checkDir()
+
+    def getWD(self):
+        return self.wd
+
+    def setWD(self, wd):
+        if os.path.exists(wd):
+            self.wd = wd
+            self._update()
+            return True
+        else:
+            return False
+
+    def setOut(self, outf):
+        self.outF = outf
+        self._update()
+        return True
+
+    def getOutF(self):
+        return self.outF
 
     def getXMLTags(self):
         return self.XML_TAGS
@@ -73,7 +102,7 @@ class Config:
         if not os.path.exists(self.path):
             path = "."
         if(fname==""):
-            _out = open(path+"/"+self.fname, 'wb')
+            _out = open(self.conffile, 'wb')
         else:
             _out = open(path+"/"+fname, 'wb')
         pickle.dump(DO, _out)
@@ -85,10 +114,11 @@ class Config:
         _out.close()
 
     def loadConfig(self, fname=conff):
-        if not os.path.isfile(fname):
-            self.saveConfig(fname)
+        path = self.path
+        if not os.path.isfile(path+"/"+fname):
+            self.saveConfig(fname=fname)
         else:
-            _in = open(fname, 'rb')
+            _in = open(path+"/"+fname, 'rb')
             try:
                 W_DO = pickle.load(_in)
                 [self.setDoTag(i, W_DO[i]) for i in W_DO]

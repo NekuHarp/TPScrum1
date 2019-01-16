@@ -16,6 +16,8 @@ _XML_TAGS = _D._XML_TAGS
 _TXT_TAGS = _D._TXT_TAGS
 _DO = _D._DO
 _XML = _D._XML
+_TXT = _D._TXT
+_APP = _D._APP
 CONFIG_DIR = _D.CONFIG_DIR
 PDF_HEADER = _D.PDF_HEADER
 HTML_ESCAPE_TABLE= _D.HTML_ESCAPE_TABLE
@@ -35,9 +37,6 @@ CORPS = _D.CORPS
 _DIGITS = _D._DIGITS
 _ASCII_TEXT = _D._ASCII_TEXT
 _DESC = _D._DESC
-
-
-
 
 
 class Parser:
@@ -97,14 +96,18 @@ class Parser:
         self._update()
 
     def loadConfig(self, fname="config.pak"):
-        if not os.path.isfile(fname):
-            self.saveConfig(fname)
+        # if not os.path.isfile(fname):
+        #     print("RECREATE")
+        #     self.saveConfig(fname)
         r = self.conf.loadConfig(fname);
         self._updateConfig(r)
 
     def saveConfig(self, fname="config.pak"):
+        #   print(self.DO, self.XML_TAGS, self.TXT_TAGS, self.outF, self.wd, self.outD, fname)
         self.conf.saveConfig(self.DO, self.XML_TAGS, self.TXT_TAGS, self.outF, self.wd, self.outD, fname)
-        # print("TODO: save")
+        #   print(self.DO, self.XML_TAGS, self.TXT_TAGS, self.outF, self.wd, self.outD, fname)
+
+        #print("TODO: save")
 
     def checkPDF(self, fname):
         try:
@@ -138,7 +141,7 @@ class Parser:
                 p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
                 p.wait()
         try:
-            r = parser(Fname, xml=True, outf=self.outF)
+            r = self.parser(Fname, xml=True, outf=self.outF)
         except:
             r = ''
         if q!='': q.put(r)
@@ -153,7 +156,7 @@ class Parser:
                 p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
                 p.wait()
         try:
-            r = parser(Fname, xml=False, outf=self.outF)
+            r = self.parser(Fname, xml=False, outf=self.outF)
         except:
             r = ''
         if q!='': q.put(r)
@@ -165,7 +168,7 @@ class Parser:
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
         try:
-            r = parser(Fname, xml=True, outf=self.outF)
+            r = self.parser(Fname, xml=True, outf=self.outF)
         except:
             r = ''
         if q!='': q.put(r)
@@ -177,7 +180,7 @@ class Parser:
         p = subprocess.Popen([_APP , fname , Fname], stdout=open(os.devnull, 'wb'), stderr=open(os.devnull, 'wb'))
         p.wait()
         try:
-            r = parser(Fname, xml=False, outf=self.outF)
+            r = self.parser(Fname, xml=False, outf=self.outF)
         except:
             r = ''
         if q!='': q.put(r)
