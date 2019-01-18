@@ -8,9 +8,13 @@ import platform
 import sys
 import threading
 import subprocess
-import queue
 import re
 import pickle
+
+if sys.version_info[0] < 3:
+    import Queue
+else:
+    import queue
 
 from .Version import getFullVersion
 from .Client import Client as _C
