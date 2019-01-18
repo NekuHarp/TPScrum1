@@ -53,6 +53,7 @@ setup(
     license='Apache-2.0',
     url='https://github.com/NekuHarp/TPScrum1/',
     packages=['PDFParser'],
+    scripts=['bin/pdfparser', 'bin/pdfparser-gui'],
     # See https://PyPI.python.org/PyPI?%3Aaction=list_classifiers
     classifiers=['Development Status :: 4 - Beta',
                  'Environment :: Console',
