@@ -2,3 +2,4 @@ pdftotext ; sys_platform == "linux"
 misc/cefpython3-66.0-py2.py3-none-any.whl ; sys_platform == "win32"
 cefpython3 ; sys_platform == "linux"
 argparse
+setuptools
